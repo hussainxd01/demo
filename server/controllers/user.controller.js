@@ -149,6 +149,102 @@ const getUserOrders = async (req, res, next) => {
   }
 };
 
+// Get all users (Admin only)
+const getAllUsers = async (req, res, next) => {
+  try {
+    const { limit, page, skip } = require('../utils/helpers').getPaginationParams(req.query);
+    const { sendPaginatedResponse } = require('../utils/helpers');
+
+    const users = await User.find()
+      .select('-password')
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const total = await User.countDocuments();
+
+    sendPaginatedResponse(res, 200, users, {
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit),
+    }, 'Users fetched successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Toggle user status (Admin only)
+const toggleUserStatus = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const { isActive } = req.body;
+
+    if (typeof isActive !== 'boolean') {
+      throw new AppError('isActive must be a boolean', 400);
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { isActive },
+      { new: true }
+    ).select('-password');
+
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    sendSuccess(res, 200, user, 'User status updated successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Delete user (Admin only)
+const deleteUser = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    // Delete user avatar if exists
+    if (user.avatar && user.avatar.publicId) {
+      await deleteImageFromCloudinary(user.avatar.publicId);
+    }
+
+    await User.findByIdAndDelete(userId);
+    sendSuccess(res, 200, {}, 'User deleted successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get user analytics (Admin only)
+const getUserAnalytics = async (req, res, next) => {
+  try {
+    const Product = require('../models/Product');
+    
+    const totalUsers = await User.countDocuments();
+    const activeUsers = await User.countDocuments({ isActive: true });
+    const inactiveUsers = await User.countDocuments({ isActive: false });
+    const totalProducts = await Product.countDocuments();
+
+    const analytics = {
+      totalUsers,
+      activeUsers,
+      inactiveUsers,
+      totalProducts,
+    };
+
+    sendSuccess(res, 200, analytics, 'User analytics fetched successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getUserProfile,
   updateUserProfile,
@@ -157,4 +253,8 @@ module.exports = {
   removeFromWishlist,
   getWishlist,
   getUserOrders,
+  getAllUsers,
+  toggleUserStatus,
+  deleteUser,
+  getUserAnalytics,
 };

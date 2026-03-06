@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middleware/auth');
+const { protect, restrictTo } = require('../middleware/auth');
 const { uploadAvatar } = require('../config/cloudinary');
 const { validate, userValidation } = require('../utils/validation');
 const userController = require('../controllers/user.controller');
@@ -53,5 +53,33 @@ router.get('/wishlist', protect, userController.getWishlist);
  * @access  Private
  */
 router.get('/orders', protect, userController.getUserOrders);
+
+/**
+ * @route   GET /api/v1/users/admin/all
+ * @desc    Get all users (Admin only)
+ * @access  Private (Admin)
+ */
+router.get('/admin/all', protect, restrictTo('admin'), userController.getAllUsers);
+
+/**
+ * @route   GET /api/v1/users/admin/analytics
+ * @desc    Get user analytics (Admin only)
+ * @access  Private (Admin)
+ */
+router.get('/admin/analytics', protect, restrictTo('admin'), userController.getUserAnalytics);
+
+/**
+ * @route   PATCH /api/v1/users/:userId/status
+ * @desc    Toggle user status (Admin only)
+ * @access  Private (Admin)
+ */
+router.patch('/:userId/status', protect, restrictTo('admin'), userController.toggleUserStatus);
+
+/**
+ * @route   DELETE /api/v1/users/:userId
+ * @desc    Delete user (Admin only)
+ * @access  Private (Admin)
+ */
+router.delete('/:userId', protect, restrictTo('admin'), userController.deleteUser);
 
 module.exports = router;

@@ -245,6 +245,43 @@ const cancelOrder = async (req, res, next) => {
   }
 };
 
+// Get order analytics (Admin only)
+const getOrderAnalytics = async (req, res, next) => {
+  try {
+    const totalOrders = await Order.countDocuments();
+    const deliveredOrders = await Order.countDocuments({ status: 'delivered' });
+    const pendingOrders = await Order.countDocuments({ status: 'pending' });
+    const cancelledOrders = await Order.countDocuments({ status: 'cancelled' });
+
+    // Calculate total revenue
+    const revenueData = await Order.aggregate([
+      { $match: { status: 'delivered' } },
+      { $group: { _id: null, totalRevenue: { $sum: '$total' } } },
+    ]);
+
+    const totalRevenue = revenueData.length > 0 ? revenueData[0].totalRevenue : 0;
+
+    // Get recent orders
+    const recentOrders = await Order.find()
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    const analytics = {
+      totalOrders,
+      deliveredOrders,
+      pendingOrders,
+      cancelledOrders,
+      totalRevenue,
+      recentOrders,
+    };
+
+    sendSuccess(res, 200, analytics, 'Order analytics fetched successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createOrder,
   getAllOrders,
@@ -253,4 +290,5 @@ module.exports = {
   updateOrderStatus,
   updatePaymentStatus,
   cancelOrder,
+  getOrderAnalytics,
 };

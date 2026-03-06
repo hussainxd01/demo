@@ -264,6 +264,89 @@ const approveReview = async (req, res, next) => {
   }
 };
 
+// Reject review (Admin)
+const rejectReview = async (req, res, next) => {
+  try {
+    const { reviewId } = req.params;
+    const { reason } = req.body;
+
+    const review = await Review.findByIdAndUpdate(
+      reviewId,
+      { status: 'rejected', rejectionReason: reason || 'Rejected by admin' },
+      { new: true }
+    ).populate('user', 'name avatar');
+
+    if (!review) {
+      throw new AppError('Review not found', 404);
+    }
+
+    sendSuccess(res, 200, review, 'Review rejected successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get all reviews (Admin)
+const getAllReviews = async (req, res, next) => {
+  try {
+    const { limit, page, skip } = getPaginationParams(req.query);
+
+    const reviews = await Review.find()
+      .populate('user', 'name email')
+      .populate('product', 'name')
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const total = await Review.countDocuments();
+
+    sendPaginatedResponse(res, 200, reviews, {
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit),
+    }, 'All reviews fetched successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Delete review (Admin)
+const deleteReviewAdmin = async (req, res, next) => {
+  try {
+    const { reviewId } = req.params;
+
+    const review = await Review.findById(reviewId);
+    if (!review) {
+      throw new AppError('Review not found', 404);
+    }
+
+    // Delete images from Cloudinary
+    if (review.images && review.images.length > 0) {
+      for (const image of review.images) {
+        await deleteImageFromCloudinary(image.publicId);
+      }
+    }
+
+    // Remove from user
+    await User.findByIdAndUpdate(
+      review.user,
+      { $pull: { reviews: review._id } }
+    );
+
+    // Remove from product
+    await Product.findByIdAndUpdate(
+      review.product,
+      { $pull: { reviews: review._id } }
+    );
+
+    await Review.findByIdAndDelete(reviewId);
+    sendSuccess(res, 200, {}, 'Review deleted successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getProductReviews,
   createReview,
@@ -273,4 +356,7 @@ module.exports = {
   markUnhelpful,
   getPendingReviews,
   approveReview,
+  rejectReview,
+  getAllReviews,
+  deleteReviewAdmin,
 };

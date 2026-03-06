@@ -35,6 +35,10 @@ const orderService = {
   async updatePaymentStatus(orderId, paymentStatus) {
     return apiClient.patch(`/orders/${orderId}/payment`, { paymentStatus });
   },
+
+  async getOrderAnalytics() {
+    return apiClient.get("/orders/admin/analytics");
+  },
 };
 
 export default orderService;

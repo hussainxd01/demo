@@ -73,4 +73,25 @@ router.get('/admin/pending', protect, restrictTo('admin'), reviewController.getP
  */
 router.patch('/admin/:reviewId/approve', protect, restrictTo('admin'), reviewController.approveReview);
 
+/**
+ * @route   GET /api/v1/reviews/admin/all
+ * @desc    Get all reviews (Admin only)
+ * @access  Private (Admin)
+ */
+router.get('/admin/all', protect, restrictTo('admin'), reviewController.getAllReviews);
+
+/**
+ * @route   PATCH /api/v1/reviews/admin/:reviewId/reject
+ * @desc    Reject review (Admin only)
+ * @access  Private (Admin)
+ */
+router.patch('/admin/:reviewId/reject', protect, restrictTo('admin'), reviewController.rejectReview);
+
+/**
+ * @route   DELETE /api/v1/reviews/admin/:reviewId/delete
+ * @desc    Delete review (Admin only)
+ * @access  Private (Admin)
+ */
+router.delete('/admin/:reviewId/delete', protect, restrictTo('admin'), reviewController.deleteReviewAdmin);
+
 module.exports = router;
