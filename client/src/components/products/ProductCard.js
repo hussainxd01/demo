@@ -29,7 +29,7 @@ export default function ProductCard({ product, onAddClick }) {
     : 0;
 
   return (
-    <Link href={`/product/${product.id}`}>
+    <Link href={`/product/${productId}`}>
       <div className="group cursor-pointer">
         {/* Image Container */}
         <div className="relative bg-gray-200 rounded overflow-hidden aspect-square mb-4">
@@ -108,14 +108,16 @@ export default function ProductCard({ product, onAddClick }) {
                   </span>
                 ))}
               </div>
-              <span className="text-xs text-gray-600">({product.reviews})</span>
+              <span className="text-xs text-gray-600">
+                ({product.reviewCount || product.reviews || 0})
+              </span>
             </div>
           )}
 
           {/* Price */}
           <div className="flex items-baseline gap-2 mt-3">
             <span className="font-semibold text-gray-900">
-              Rs. {product.price.toFixed(2)}
+              Rs. {Number(product.price || 0).toFixed(2)}
             </span>
             {product.originalPrice && product.originalPrice > product.price && (
               <span className="text-sm text-gray-500 line-through">

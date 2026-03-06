@@ -4,15 +4,30 @@ import React from "react";
 import Link from "next/link";
 import { X, ChevronRight } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
-import { BRANDS, CATEGORIES } from "@/lib/products";
+import { getBrands } from "@/lib/api";
+import { CATEGORIES } from "@/lib/products";
 
 export default function Navigation() {
   const { isMenuOpen, closeMenu } = useShop();
   const [expandedMenu, setExpandedMenu] = React.useState(null);
+  const [brands, setBrands] = React.useState([]);
 
   const handleMenuClick = (menu) => {
     setExpandedMenu(expandedMenu === menu ? null : menu);
   };
+
+  React.useEffect(() => {
+    const loadBrands = async () => {
+      if (!isMenuOpen) return;
+      try {
+        const data = await getBrands();
+        setBrands(data);
+      } catch (error) {
+        console.error("Failed to load brands:", error);
+      }
+    };
+    loadBrands();
+  }, [isMenuOpen]);
 
   return (
     <>
@@ -62,10 +77,10 @@ export default function Navigation() {
               </button>
               {expandedMenu === "brands" && (
                 <div className="bg-gray-50 px-4 py-2 space-y-2">
-                  {BRANDS.map((brand) => (
+                  {brands.map((brand) => (
                     <Link
                       key={brand}
-                      href={`/brand/${brand}`}
+                      href={`/brand/${encodeURIComponent(brand)}`}
                       className="block py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
                       onClick={closeMenu}
                     >

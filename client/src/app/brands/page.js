@@ -49,7 +49,7 @@ export default function BrandsPage() {
             {brands.map((brand) => (
               <Link
                 key={brand}
-                href={`/brand/${brand}`}
+                href={`/brand/${encodeURIComponent(brand)}`}
                 className="p-6 md:p-8 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center text-center h-24 md:h-32 group"
               >
                 <div>

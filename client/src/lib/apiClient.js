@@ -1,5 +1,21 @@
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+function normalizeApiBaseUrl(url) {
+  if (!url) return "http://localhost:5000/api/v1";
+  const trimmed = url.replace(/\/+$/, "");
+
+  // If user provided full prefix already, keep it.
+  if (/\/api\/v1($|\/)/.test(trimmed)) return trimmed;
+
+  // Common misconfig from docs: ".../api" instead of ".../api/v1"
+  if (/\/api$/.test(trimmed)) return `${trimmed}/v1`;
+
+  // If they provided just host (or anything without /api), assume /api/v1.
+  if (!/\/api(\/|$)/.test(trimmed)) return `${trimmed}/api/v1`;
+
+  // If it includes /api but not /api/v1 (custom setups), leave it as-is.
+  return trimmed;
+}
+
+const API_URL = normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_URL);
 
 class APIClient {
   constructor() {

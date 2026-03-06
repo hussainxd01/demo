@@ -15,9 +15,12 @@ router.post('/product-image', protect, restrictTo('admin'), uploadProduct.single
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
+    const url = req.file.secure_url || req.file.path;
+    const publicId = req.file.public_id || req.file.filename;
+
     sendSuccess(res, 200, {
-      url: req.file.secure_url,
-      publicId: req.file.public_id,
+      url,
+      publicId,
     }, 'Image uploaded successfully');
   } catch (error) {
     next(error);
@@ -35,9 +38,12 @@ router.post('/avatar', protect, uploadAvatar.single('avatar'), (req, res, next) 
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
+    const url = req.file.secure_url || req.file.path;
+    const publicId = req.file.public_id || req.file.filename;
+
     sendSuccess(res, 200, {
-      url: req.file.secure_url,
-      publicId: req.file.public_id,
+      url,
+      publicId,
     }, 'Avatar uploaded successfully');
   } catch (error) {
     next(error);
@@ -56,8 +62,8 @@ router.post('/multiple', protect, restrictTo('admin'), uploadProduct.array('imag
     }
 
     const images = req.files.map(file => ({
-      url: file.secure_url,
-      publicId: file.public_id,
+      url: file.secure_url || file.path,
+      publicId: file.public_id || file.filename,
     }));
 
     sendSuccess(res, 200, { images }, 'Images uploaded successfully');

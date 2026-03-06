@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, Loader, Toggle2 } from "lucide-react";
+import { Search, Loader, X } from "lucide-react";
 import userService from "@/lib/services/userService";
 import DataTable from "@/components/admin/DataTable";
 
@@ -11,6 +11,7 @@ export default function UsersAdminPage() {
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ total: 0, limit: 10 });
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
     loadUsers();
@@ -97,38 +98,125 @@ export default function UsersAdminPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-black">Users</h1>
+    <>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-black">Users</h1>
 
-      <div className="bg-white rounded-lg p-6 border border-gray-200">
-        <div className="mb-6 relative">
-          <Search className="absolute left-4 top-3 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search by name or email..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setPage(1);
-            }}
-            className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-          />
-        </div>
-
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader className="w-8 h-8 animate-spin text-black" />
+        <div className="bg-white rounded-lg p-6 border border-gray-200">
+          <div className="mb-6 relative">
+            <Search className="absolute left-4 top-3 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by name or email..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1);
+              }}
+              className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+            />
           </div>
-        ) : (
-          <DataTable
-            columns={columns}
-            data={users}
-            onDelete={handleDelete}
-            pagination={{ ...pagination, page }}
-            onPageChange={setPage}
-          />
-        )}
+
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader className="w-8 h-8 animate-spin text-black" />
+            </div>
+          ) : (
+            <DataTable
+              columns={columns}
+              data={users}
+              onEdit={setSelectedUser}
+              onDelete={handleDelete}
+              pagination={{ ...pagination, page }}
+              onPageChange={setPage}
+            />
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* User Details Modal */}
+      {selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg border border-gray-300 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-black">User Details</h2>
+              <button
+                onClick={() => setSelectedUser(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Name
+                </label>
+                <p className="mt-1 text-gray-900">
+                  {selectedUser.firstName} {selectedUser.lastName}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Email
+                </label>
+                <p className="mt-1 text-gray-900">{selectedUser.email}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Phone
+                </label>
+                <p className="mt-1 text-gray-900">
+                  {selectedUser.phone || "-"}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Joined
+                </label>
+                <p className="mt-1 text-gray-900">
+                  {new Date(selectedUser.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Status
+                </label>
+                <p className="mt-1">
+                  <span
+                    className={`px-3 py-1 rounded text-xs font-medium ${
+                      selectedUser.isActive
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    {selectedUser.isActive ? "Active" : "Inactive"}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => setSelectedUser(null)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  handleToggleStatus(selectedUser._id, selectedUser.isActive);
+                  setSelectedUser(null);
+                }}
+                className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                Toggle Status
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

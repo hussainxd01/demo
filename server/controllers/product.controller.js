@@ -61,10 +61,13 @@ const createProduct = async (req, res, next) => {
 
     // Handle uploaded images
     if (req.files && req.files.length > 0) {
-      productData.images = req.files.map(file => ({
-        url: file.secure_url,
-        publicId: extractPublicIdFromUrl(file.secure_url),
-      }));
+      productData.images = req.files.map((file) => {
+        const url = file.secure_url || file.path;
+        const publicId =
+          file.public_id || file.filename || extractPublicIdFromUrl(url);
+
+        return { url, publicId };
+      });
     }
 
     const product = await Product.create(productData);
@@ -94,10 +97,13 @@ const updateProduct = async (req, res, next) => {
       }
 
       // Add new images
-      req.body.images = req.files.map(file => ({
-        url: file.secure_url,
-        publicId: extractPublicIdFromUrl(file.secure_url),
-      }));
+      req.body.images = req.files.map((file) => {
+        const url = file.secure_url || file.path;
+        const publicId =
+          file.public_id || file.filename || extractPublicIdFromUrl(url);
+
+        return { url, publicId };
+      });
     }
 
     product = await Product.findByIdAndUpdate(id, req.body, {
@@ -232,6 +238,17 @@ const getFeaturedProducts = async (req, res, next) => {
   }
 };
 
+// Get distinct active brands
+const getBrands = async (req, res, next) => {
+  try {
+    const brands = await Product.distinct('brand', { isActive: true });
+    brands.sort((a, b) => String(a).localeCompare(String(b)));
+    sendSuccess(res, 200, { brands }, 'Brands fetched successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getProducts,
   getProductById,
@@ -242,4 +259,5 @@ module.exports = {
   getProductsByBrand,
   searchProducts,
   getFeaturedProducts,
+  getBrands,
 };

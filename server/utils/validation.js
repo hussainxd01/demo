@@ -23,15 +23,31 @@ const productValidation = {
     name: Joi.string().required().min(3).max(100),
     description: Joi.string().required().min(10),
     price: Joi.number().required().positive(),
-    category: Joi.string().required(),
+    category: Joi.string()
+      .required()
+      .valid('SKINCARE', 'BODY CARE', 'BABY & KIDS', 'HAIR CARE'),
     brand: Joi.string().required(),
     stock: Joi.number().required().min(0),
     sku: Joi.string().required(),
-    images: Joi.array().items(Joi.string()),
-    specifications: Joi.object(),
-    ingredients: Joi.array().items(Joi.string()),
+    specifications: Joi.object({
+      size: Joi.string(),
+      volume: Joi.string(),
+      weight: Joi.string(),
+      ingredients: Joi.array().items(Joi.string()),
+    }),
     instructions: Joi.string(),
-    shipping: Joi.object(),
+    shipping: Joi.object({
+      weight: Joi.number(),
+      dimensions: Joi.object({
+        length: Joi.number(),
+        width: Joi.number(),
+        height: Joi.number(),
+      }),
+      estimatedDays: Joi.string(),
+      info: Joi.string(),
+    }),
+    tags: Joi.array().items(Joi.string()),
+    isActive: Joi.boolean(),
   }).unknown(false),
 
   update: Joi.object({
@@ -42,11 +58,25 @@ const productValidation = {
     brand: Joi.string(),
     stock: Joi.number().min(0),
     sku: Joi.string(),
-    images: Joi.array().items(Joi.string()),
-    specifications: Joi.object(),
-    ingredients: Joi.array().items(Joi.string()),
+    specifications: Joi.object({
+      size: Joi.string(),
+      volume: Joi.string(),
+      weight: Joi.string(),
+      ingredients: Joi.array().items(Joi.string()),
+    }),
     instructions: Joi.string(),
-    shipping: Joi.object(),
+    shipping: Joi.object({
+      weight: Joi.number(),
+      dimensions: Joi.object({
+        length: Joi.number(),
+        width: Joi.number(),
+        height: Joi.number(),
+      }),
+      estimatedDays: Joi.string(),
+      info: Joi.string(),
+    }),
+    tags: Joi.array().items(Joi.string()),
+    isActive: Joi.boolean(),
   }).unknown(false),
 };
 

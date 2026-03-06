@@ -9,13 +9,13 @@ This guide explains how to connect the frontend with the backend API and configu
 Create a `.env.local` file in the root of your frontend project:
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_API_URL=http://localhost:5000/api/v1
 ```
 
 For production, replace with your deployed API URL:
 
 ```bash
-NEXT_PUBLIC_API_URL=https://api.yourdomain.com/api
+NEXT_PUBLIC_API_URL=https://api.yourdomain.com/api/v1
 ```
 
 ### 2. Start the Backend Server
@@ -27,7 +27,7 @@ cp .env.example .env  # Configure with your credentials
 npm run dev
 ```
 
-The API will be available at `http://localhost:5000`
+The API will be available at `http://localhost:5000/api/v1`
 
 ### 3. Start the Frontend
 

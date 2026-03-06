@@ -1,16 +1,16 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { protect, restrictTo } = require('../middleware/auth');
-const { uploadProduct } = require('../config/cloudinary');
-const { validate, reviewValidation } = require('../utils/validation');
-const reviewController = require('../controllers/review.controller');
+const { protect, restrictTo } = require("../middleware/auth");
+const { uploadProduct } = require("../config/cloudinary");
+const { validate, reviewValidation } = require("../utils/validation");
+const reviewController = require("../controllers/review.controller");
 
 /**
  * @route   GET /api/v1/reviews/product/:productId
  * @desc    Get reviews for a product
  * @access  Public
  */
-router.get('/product/:productId', reviewController.getProductReviews);
+router.get("/product/:productId", reviewController.getProductReviews);
 
 /**
  * @route   POST /api/v1/reviews/product/:productId
@@ -18,11 +18,11 @@ router.get('/product/:productId', reviewController.getProductReviews);
  * @access  Private
  */
 router.post(
-  '/product/:productId',
+  "/product/:productId",
   protect,
-  uploadProduct.array('images', 3),
+  uploadProduct.array("images", 3),
   validate(reviewValidation.create),
-  reviewController.createReview
+  reviewController.createReview,
 );
 
 /**
@@ -31,11 +31,11 @@ router.post(
  * @access  Private
  */
 router.patch(
-  '/:reviewId',
+  "/:reviewId",
   protect,
-  uploadProduct.array('images', 3),
+  uploadProduct.array("images", 3),
   validate(reviewValidation.update),
-  reviewController.updateReview
+  reviewController.updateReview,
 );
 
 /**
@@ -43,34 +43,80 @@ router.patch(
  * @desc    Delete review
  * @access  Private
  */
-router.delete('/:reviewId', protect, reviewController.deleteReview);
+router.delete("/:reviewId", protect, reviewController.deleteReview);
 
 /**
  * @route   POST /api/v1/reviews/:reviewId/helpful
  * @desc    Mark review as helpful
  * @access  Public
  */
-router.post('/:reviewId/helpful', reviewController.markHelpful);
+router.post("/:reviewId/helpful", reviewController.markHelpful);
 
 /**
  * @route   POST /api/v1/reviews/:reviewId/unhelpful
  * @desc    Mark review as unhelpful
  * @access  Public
  */
-router.post('/:reviewId/unhelpful', reviewController.markUnhelpful);
+router.post("/:reviewId/unhelpful", reviewController.markUnhelpful);
 
 /**
  * @route   GET /api/v1/reviews/admin/pending
  * @desc    Get pending reviews (Admin only)
  * @access  Private (Admin)
  */
-router.get('/admin/pending', protect, restrictTo('admin'), reviewController.getPendingReviews);
+router.get(
+  "/admin/pending",
+  protect,
+  restrictTo("admin"),
+  reviewController.getPendingReviews,
+);
 
 /**
  * @route   PATCH /api/v1/reviews/admin/:reviewId/approve
  * @desc    Approve review (Admin only)
  * @access  Private (Admin)
  */
-router.patch('/admin/:reviewId/approve', protect, restrictTo('admin'), reviewController.approveReview);
+router.patch(
+  "/admin/:reviewId/approve",
+  protect,
+  restrictTo("admin"),
+  reviewController.approveReview,
+);
+
+/**
+ * @route   GET /api/v1/reviews/admin/all
+ * @desc    Get all reviews (Admin only)
+ * @access  Private (Admin)
+ */
+router.get(
+  "/admin/all",
+  protect,
+  restrictTo("admin"),
+  reviewController.getAllReviews,
+);
+
+/**
+ * @route   PATCH /api/v1/reviews/admin/:reviewId/reject
+ * @desc    Reject review (Admin only)
+ * @access  Private (Admin)
+ */
+router.patch(
+  "/admin/:reviewId/reject",
+  protect,
+  restrictTo("admin"),
+  reviewController.rejectReview,
+);
+
+/**
+ * @route   DELETE /api/v1/reviews/admin/:reviewId/delete
+ * @desc    Delete review (Admin only)
+ * @access  Private (Admin)
+ */
+router.delete(
+  "/admin/:reviewId/delete",
+  protect,
+  restrictTo("admin"),
+  reviewController.deleteReviewAdmin,
+);
 
 module.exports = router;

@@ -22,6 +22,49 @@ const initialState = {
   isLoadingFavorites: false,
 };
 
+function getId(entity) {
+  return entity?._id || entity?.id;
+}
+
+function normalizeProductForCart(product, quantity = 1) {
+  const id = getId(product);
+  const image = product?.images?.[0]?.url || product?.image || "/placeholder.jpg";
+  return {
+    id,
+    _id: id,
+    name: product?.name,
+    brand: product?.brand,
+    category: product?.category,
+    price: product?.price,
+    image,
+    quantity,
+    // Keep the original images array if present (useful in UI)
+    images: product?.images,
+  };
+}
+
+function normalizeCartItemsFromApi(cart) {
+  const items = cart?.items || [];
+  return items
+    .map((item) => {
+      const p = item?.product;
+      const id = p?._id || item?.product;
+      if (!id) return null;
+      return {
+        id,
+        _id: id,
+        name: p?.name,
+        brand: p?.brand,
+        category: p?.category,
+        price: item?.price ?? p?.price ?? 0,
+        image: p?.images?.[0]?.url || "/placeholder.jpg",
+        quantity: item?.quantity ?? 1,
+        images: p?.images,
+      };
+    })
+    .filter(Boolean);
+}
+
 function shopReducer(state, action) {
   switch (action.type) {
     case "ADD_TO_CART": {
@@ -143,7 +186,10 @@ export function ShopProvider({ children }) {
         try {
           dispatch({ type: "SET_LOADING_CART", payload: true });
           const cartResponse = await cartService.getCart();
-          dispatch({ type: "SET_CART", payload: cartResponse.items || [] });
+          dispatch({
+            type: "SET_CART",
+            payload: normalizeCartItemsFromApi(cartResponse),
+          });
         } catch (error) {
           console.log("[v0] Failed to load cart:", error.message);
         } finally {
@@ -155,7 +201,7 @@ export function ShopProvider({ children }) {
           const favoritesResponse = await cartService.getFavorites();
           dispatch({
             type: "SET_FAVORITES",
-            payload: favoritesResponse.products?.map((p) => p._id) || [],
+            payload: favoritesResponse.wishlist?.map((p) => p._id) || [],
           });
         } catch (error) {
           console.log("[v0] Failed to load favorites:", error.message);
@@ -172,12 +218,15 @@ export function ShopProvider({ children }) {
     async (product, quantity = 1) => {
       if (isAuthenticated) {
         try {
-          await cartService.addToCart(product._id || product.id, quantity);
+          await cartService.addToCart(getId(product), quantity);
         } catch (error) {
           console.error("[v0] Failed to add to cart:", error);
         }
       }
-      dispatch({ type: "ADD_TO_CART", payload: { ...product, quantity } });
+      dispatch({
+        type: "ADD_TO_CART",
+        payload: normalizeProductForCart(product, quantity),
+      });
     },
     [isAuthenticated],
   );

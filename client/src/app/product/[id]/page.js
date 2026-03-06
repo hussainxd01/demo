@@ -1,21 +1,25 @@
 "use client";
 
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Heart, Share2, Truck, Zap } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 import { getProductById } from "@/lib/api";
 import ExpandableSection from "@/components/common/ExpandableSection";
+import { CATEGORIES } from "@/lib/products";
 
-export default function ProductPage({ params }) {
-  const { id } = use(params);
+export default function ProductPage() {
+  const { id } = useParams();
+
   const [product, setProduct] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
 
   const { addToCart, openCart, toggleFavorite, favorites } = useShop();
-  const isFavorited = product && favorites.includes(product.id);
+  const productId = product?._id;
+  const isFavorited = productId && favorites.includes(productId);
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -30,7 +34,9 @@ export default function ProductPage({ params }) {
       }
     };
 
-    loadProduct();
+    if (id) {
+      loadProduct();
+    }
   }, [id]);
 
   const handleAddToCart = () => {
@@ -59,9 +65,20 @@ export default function ProductPage({ params }) {
     );
   }
 
-  const discount = Math.round(
-    ((product.originalPrice - product.price) / product.originalPrice) * 100,
-  );
+  const imageUrls = (product.images || []).map((img) => img.url);
+
+  const categorySlug =
+    CATEGORIES.find((c) => c.name === product.category)?.slug ||
+    product.category.toLowerCase().replace(/\s+/g, "-").replace(/&/g, "");
+
+  const ingredients = product.specifications?.ingredients || [];
+
+  const instructions = product.instructions
+    ? product.instructions
+        .split(/\r?\n|•|- /)
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
 
   return (
     <div className="min-h-screen bg-white">
@@ -71,12 +88,14 @@ export default function ProductPage({ params }) {
           HOME
         </Link>
         <span>/</span>
+
         <Link
-          href={`/category/${product.category.toLowerCase()}`}
+          href={`/category/${categorySlug}`}
           className="hover:text-gray-900 transition-colors"
         >
           {product.category}
         </Link>
+
         <span>/</span>
         <span className="text-gray-900">{product.name}</span>
       </div>
@@ -85,30 +104,20 @@ export default function ProductPage({ params }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
           {/* Images Section */}
           <div className="space-y-4">
-            {/* Main Image */}
             <div className="relative bg-gray-100 rounded aspect-square overflow-hidden">
               <img
-                src={product.images[selectedImage]}
+                src={imageUrls[selectedImage] || "/placeholder.jpg"}
                 alt={product.name}
                 className="w-full h-full object-cover"
               />
 
-              {/* Zoom Icon */}
               <button className="absolute bottom-4 right-4 bg-white rounded-full p-2 hover:bg-gray-100 transition-colors">
                 <Zap size={20} className="text-gray-600" />
               </button>
-
-              {/* Discount Badge */}
-              {discount > 0 && (
-                <div className="absolute top-4 right-4 bg-yellow-300 text-gray-900 px-3 py-1 rounded-full text-sm font-bold">
-                  -{discount}%
-                </div>
-              )}
             </div>
 
-            {/* Thumbnail Images */}
             <div className="flex gap-3 overflow-x-auto pb-2">
-              {product.images.map((image, index) => (
+              {imageUrls.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
@@ -128,19 +137,18 @@ export default function ProductPage({ params }) {
             </div>
           </div>
 
-          {/* Product Info Section */}
+          {/* Product Info */}
           <div className="space-y-6">
-            {/* Brand & Title */}
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                 {product.brand}
               </p>
+
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
                 {product.name}
               </h1>
             </div>
 
-            {/* Rating */}
             {product.rating && (
               <div className="flex items-center gap-3">
                 <div className="flex gap-1">
@@ -157,65 +165,56 @@ export default function ProductPage({ params }) {
                     </span>
                   ))}
                 </div>
+
                 <span className="text-sm text-gray-600">
                   ({product.reviews} reviews)
                 </span>
               </div>
             )}
 
-            {/* Price */}
             <div className="flex items-baseline gap-3">
               <span className="text-3xl font-bold text-gray-900">
-                Rs. {product.price.toLocaleString()}
-              </span>
-              <span className="text-lg text-gray-500 line-through">
-                Rs. {product.originalPrice.toLocaleString()}
-              </span>
-              <span className="text-sm text-green-600 font-semibold">
-                Save {discount}%
+                Rs. {Number(product.price || 0).toLocaleString()}
               </span>
             </div>
 
-            {/* Description */}
             <p className="text-gray-700 leading-relaxed italic">
-              {product.fullDescription}
+              {product.description}
             </p>
 
-            {/* Size */}
             <div className="p-4 bg-gray-50 rounded">
               <p className="text-sm text-gray-600">
-                <strong>Size:</strong> {product.size}
+                <strong>Size:</strong>{" "}
+                {product.specifications?.size ||
+                  product.specifications?.volume ||
+                  product.specifications?.weight ||
+                  "—"}
               </p>
             </div>
 
-            {/* Quantity & Actions */}
+            {/* Quantity + Buttons */}
             <div className="flex gap-4 pt-4">
-              {/* Quantity Selector */}
               <div className="flex items-center border border-gray-300 rounded">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-4 py-2 hover:bg-gray-100 transition-colors"
-                  aria-label="Decrease quantity"
+                  className="px-4 py-2 hover:bg-gray-100"
                 >
                   −
                 </button>
+
                 <span className="px-6 py-2 font-medium">{quantity}</span>
+
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="px-4 py-2 hover:bg-gray-100 transition-colors"
-                  aria-label="Increase quantity"
+                  className="px-4 py-2 hover:bg-gray-100"
                 >
                   +
                 </button>
               </div>
 
-              {/* Favorite Button */}
               <button
-                onClick={() => toggleFavorite(product.id)}
-                className="flex-1 flex items-center justify-center gap-2 px-6 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-                aria-label={
-                  isFavorited ? "Remove from favorites" : "Add to favorites"
-                }
+                onClick={() => toggleFavorite(productId)}
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-2 border border-gray-300 rounded hover:bg-gray-50"
               >
                 <Heart
                   size={20}
@@ -225,43 +224,30 @@ export default function ProductPage({ params }) {
                 />
               </button>
 
-              {/* Share Button */}
-              <button
-                className="flex-1 flex items-center justify-center gap-2 px-6 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-                aria-label="Share product"
-              >
+              <button className="flex-1 flex items-center justify-center gap-2 px-6 py-2 border border-gray-300 rounded hover:bg-gray-50">
                 <Share2 size={20} className="text-gray-600" />
               </button>
             </div>
 
-            {/* Add to Cart Button */}
             <button
               onClick={handleAddToCart}
-              className="w-full py-4 border-2 border-gray-800 text-gray-800 font-bold text-lg rounded hover:bg-gray-800 hover:text-white transition-colors"
+              className="w-full py-4 border-2 border-gray-800 text-gray-800 font-bold text-lg rounded hover:bg-gray-800 hover:text-white"
             >
               ADD TO CART
             </button>
 
-            {/* Buy It Now Button */}
-            <button className="w-full py-4 bg-yellow-300 text-gray-900 font-bold text-lg rounded hover:bg-yellow-400 transition-colors">
+            <button className="w-full py-4 bg-yellow-300 text-gray-900 font-bold text-lg rounded hover:bg-yellow-400">
               BUY IT NOW
             </button>
 
-            {/* Availability */}
-            <p className="text-sm text-gray-600">
-              Pickup currently unavailable at German Warehouse
-            </p>
-            <button className="text-sm text-gray-800 hover:text-gray-600 transition-colors font-medium">
-              Check availability at other stores
-            </button>
-
-            {/* Shipping Info */}
             <div className="p-4 bg-blue-50 rounded flex gap-3">
               <Truck className="text-blue-600 flex-shrink-0" size={20} />
+
               <div className="text-sm text-gray-700">
                 <p className="font-semibold text-blue-900">
                   Free shipping on orders over Rs. 5,000
                 </p>
+
                 <p className="text-xs text-gray-600 mt-1">
                   Estimated delivery in 2-3 business days
                 </p>
@@ -270,34 +256,24 @@ export default function ProductPage({ params }) {
           </div>
         </div>
 
-        {/* Product Details Sections */}
+        {/* Expandable Sections */}
+
         <div className="mt-16 md:mt-20 grid grid-cols-1 md:grid-cols-2 gap-12">
           <div>
-            <ExpandableSection title="Key Ingredients" defaultOpen={true}>
-              {product.keyIngredients}
+            <ExpandableSection title="Key Ingredients" defaultOpen>
+              {ingredients.length > 0
+                ? ingredients
+                : ["No ingredients listed."]}
             </ExpandableSection>
 
             <ExpandableSection title="How to Use">
-              {product.howToUse}
-            </ExpandableSection>
-
-            <ExpandableSection title="Ingredients">
-              <p className="text-sm text-gray-700">
-                Full ingredient list available upon request or on product
-                packaging.
-              </p>
+              {instructions.length > 0
+                ? instructions
+                : ["No instructions provided."]}
             </ExpandableSection>
           </div>
 
           <div>
-            <ExpandableSection title="Shipping Information" defaultOpen={false}>
-              <div className="space-y-2 text-sm text-gray-700">
-                {product.shipping.split(". ").map((item, index) => (
-                  <p key={index}>- {item}</p>
-                ))}
-              </div>
-            </ExpandableSection>
-
             <ExpandableSection title="Return Policy">
               <p className="text-sm text-gray-700">
                 Items can be returned within 30 days of purchase for a full

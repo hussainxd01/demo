@@ -68,7 +68,7 @@ export default function ReviewsAdminPage() {
 
   const handleDelete = async (reviewId) => {
     try {
-      await reviewService.deleteReview(reviewId);
+      await reviewService.deleteReviewAdmin(reviewId);
       setReviews((prev) => prev.filter((r) => r._id !== reviewId));
     } catch (error) {
       console.error("Failed to delete review", error);

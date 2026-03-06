@@ -1,9 +1,13 @@
-const Order = require('../models/Order');
-const Cart = require('../models/Cart');
-const User = require('../models/User');
-const Product = require('../models/Product');
-const { AppError } = require('../middleware/errorHandler');
-const { sendSuccess, sendPaginatedResponse, getPaginationParams } = require('../utils/helpers');
+const Order = require("../models/Order");
+const Cart = require("../models/Cart");
+const User = require("../models/User");
+const Product = require("../models/Product");
+const { AppError } = require("../middleware/errorHandler");
+const {
+  sendSuccess,
+  sendPaginatedResponse,
+  getPaginationParams,
+} = require("../utils/helpers");
 
 // Create order from cart
 const createOrder = async (req, res, next) => {
@@ -11,14 +15,16 @@ const createOrder = async (req, res, next) => {
     const { shippingAddress, paymentMethod, notes } = req.body;
 
     // Get user's cart
-    const cart = await Cart.findOne({ user: req.userId }).populate('items.product');
+    const cart = await Cart.findOne({ user: req.userId }).populate(
+      "items.product",
+    );
     if (!cart || cart.items.length === 0) {
-      throw new AppError('Cart is empty', 400);
+      throw new AppError("Cart is empty", 400);
     }
 
     // Validate shipping address
     if (!shippingAddress || !shippingAddress.name || !shippingAddress.address) {
-      throw new AppError('Complete shipping address is required', 400);
+      throw new AppError("Complete shipping address is required", 400);
     }
 
     // Check stock availability
@@ -31,7 +37,7 @@ const createOrder = async (req, res, next) => {
     // Create order
     const orderData = {
       user: req.userId,
-      items: cart.items.map(item => ({
+      items: cart.items.map((item) => ({
         product: item.product._id,
         quantity: item.quantity,
         price: item.price,
@@ -44,34 +50,32 @@ const createOrder = async (req, res, next) => {
       shipping: cart.shipping,
       discount: cart.discount,
       total: cart.total,
-      timeline: [{
-        status: 'pending',
-        description: 'Order placed',
-      }],
+      timeline: [
+        {
+          status: "pending",
+          description: "Order placed",
+        },
+      ],
     };
 
     const order = await Order.create(orderData);
 
     // Update product stock
     for (const item of cart.items) {
-      await Product.findByIdAndUpdate(
-        item.product._id,
-        { $inc: { stock: -item.quantity } }
-      );
+      await Product.findByIdAndUpdate(item.product._id, {
+        $inc: { stock: -item.quantity },
+      });
     }
 
     // Add order to user
-    await User.findByIdAndUpdate(
-      req.userId,
-      { $push: { orders: order._id } }
-    );
+    await User.findByIdAndUpdate(req.userId, { $push: { orders: order._id } });
 
     // Clear cart after successful order
     cart.items = [];
     await cart.save();
 
-    const populatedOrder = await order.populate('items.product');
-    sendSuccess(res, 201, populatedOrder, 'Order created successfully');
+    const populatedOrder = await order.populate("items.product");
+    sendSuccess(res, 201, populatedOrder, "Order created successfully");
   } catch (error) {
     next(error);
   }
@@ -83,20 +87,26 @@ const getAllOrders = async (req, res, next) => {
     const { limit, page, skip } = getPaginationParams(req.query);
 
     const orders = await Order.find()
-      .populate('user', 'name email')
-      .populate('items.product', 'name price')
+      .populate("user", "name email")
+      .populate("items.product", "name price")
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
 
     const total = await Order.countDocuments();
 
-    sendPaginatedResponse(res, 200, orders, {
-      total,
-      page,
-      limit,
-      pages: Math.ceil(total / limit),
-    }, 'Orders fetched successfully');
+    sendPaginatedResponse(
+      res,
+      200,
+      orders,
+      {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+      "Orders fetched successfully",
+    );
   } catch (error) {
     next(error);
   }
@@ -108,19 +118,25 @@ const getUserOrders = async (req, res, next) => {
     const { limit, page, skip } = getPaginationParams(req.query);
 
     const orders = await Order.find({ user: req.userId })
-      .populate('items.product')
+      .populate("items.product")
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
 
     const total = await Order.countDocuments({ user: req.userId });
 
-    sendPaginatedResponse(res, 200, orders, {
-      total,
-      page,
-      limit,
-      pages: Math.ceil(total / limit),
-    }, 'User orders fetched successfully');
+    sendPaginatedResponse(
+      res,
+      200,
+      orders,
+      {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+      "User orders fetched successfully",
+    );
   } catch (error) {
     next(error);
   }
@@ -132,19 +148,19 @@ const getOrderById = async (req, res, next) => {
     const { id } = req.params;
 
     const order = await Order.findById(id)
-      .populate('user', 'name email phone')
-      .populate('items.product');
+      .populate("user", "name email phone")
+      .populate("items.product");
 
     if (!order) {
-      throw new AppError('Order not found', 404);
+      throw new AppError("Order not found", 404);
     }
 
     // Check if user is owner or admin
-    if (order.user._id.toString() !== req.userId && req.user.role !== 'admin') {
-      throw new AppError('Not authorized to view this order', 403);
+    if (order.user._id.toString() !== req.userId && req.user.role !== "admin") {
+      throw new AppError("Not authorized to view this order", 403);
     }
 
-    sendSuccess(res, 200, order, 'Order fetched successfully');
+    sendSuccess(res, 200, order, "Order fetched successfully");
   } catch (error) {
     next(error);
   }
@@ -156,13 +172,18 @@ const updateOrderStatus = async (req, res, next) => {
     const { id } = req.params;
     const { status, trackingNumber } = req.body;
 
-    if (!status || !['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'].includes(status)) {
-      throw new AppError('Invalid order status', 400);
+    if (
+      !status ||
+      !["pending", "confirmed", "shipped", "delivered", "cancelled"].includes(
+        status,
+      )
+    ) {
+      throw new AppError("Invalid order status", 400);
     }
 
     const order = await Order.findById(id);
     if (!order) {
-      throw new AppError('Order not found', 404);
+      throw new AppError("Order not found", 404);
     }
 
     order.status = status;
@@ -177,7 +198,7 @@ const updateOrderStatus = async (req, res, next) => {
     });
 
     await order.save();
-    sendSuccess(res, 200, order, 'Order status updated successfully');
+    sendSuccess(res, 200, order, "Order status updated successfully");
   } catch (error) {
     next(error);
   }
@@ -189,21 +210,24 @@ const updatePaymentStatus = async (req, res, next) => {
     const { id } = req.params;
     const { paymentStatus } = req.body;
 
-    if (!paymentStatus || !['pending', 'completed', 'failed', 'refunded'].includes(paymentStatus)) {
-      throw new AppError('Invalid payment status', 400);
+    if (
+      !paymentStatus ||
+      !["pending", "completed", "failed", "refunded"].includes(paymentStatus)
+    ) {
+      throw new AppError("Invalid payment status", 400);
     }
 
     const order = await Order.findByIdAndUpdate(
       id,
       { paymentStatus },
-      { new: true }
+      { new: true },
     );
 
     if (!order) {
-      throw new AppError('Order not found', 404);
+      throw new AppError("Order not found", 404);
     }
 
-    sendSuccess(res, 200, order, 'Payment status updated successfully');
+    sendSuccess(res, 200, order, "Payment status updated successfully");
   } catch (error) {
     next(error);
   }
@@ -216,30 +240,67 @@ const cancelOrder = async (req, res, next) => {
 
     const order = await Order.findById(id);
     if (!order) {
-      throw new AppError('Order not found', 404);
+      throw new AppError("Order not found", 404);
     }
 
     // Check if order can be cancelled
-    if (['shipped', 'delivered', 'cancelled'].includes(order.status)) {
-      throw new AppError('Order cannot be cancelled', 400);
+    if (["shipped", "delivered", "cancelled"].includes(order.status)) {
+      throw new AppError("Order cannot be cancelled", 400);
     }
 
     // Restore product stock
     for (const item of order.items) {
-      await Product.findByIdAndUpdate(
-        item.product,
-        { $inc: { stock: item.quantity } }
-      );
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: { stock: item.quantity },
+      });
     }
 
-    order.status = 'cancelled';
+    order.status = "cancelled";
     order.timeline.push({
-      status: 'cancelled',
-      description: 'Order cancelled by user',
+      status: "cancelled",
+      description: "Order cancelled by user",
     });
 
     await order.save();
-    sendSuccess(res, 200, order, 'Order cancelled successfully');
+    sendSuccess(res, 200, order, "Order cancelled successfully");
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get order analytics (Admin only)
+const getOrderAnalytics = async (req, res, next) => {
+  try {
+    const totalOrders = await Order.countDocuments();
+    const deliveredOrders = await Order.countDocuments({ status: "delivered" });
+    const pendingOrders = await Order.countDocuments({ status: "pending" });
+    const cancelledOrders = await Order.countDocuments({ status: "cancelled" });
+
+    // Calculate total revenue
+    const revenueData = await Order.aggregate([
+      { $match: { status: "delivered" } },
+      { $group: { _id: null, totalRevenue: { $sum: "$total" } } },
+    ]);
+
+    const totalRevenue =
+      revenueData.length > 0 ? revenueData[0].totalRevenue : 0;
+
+    // Get recent orders
+    const recentOrders = await Order.find()
+      .populate("user", "name email")
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    const analytics = {
+      totalOrders,
+      deliveredOrders,
+      pendingOrders,
+      cancelledOrders,
+      totalRevenue,
+      recentOrders,
+    };
+
+    sendSuccess(res, 200, analytics, "Order analytics fetched successfully");
   } catch (error) {
     next(error);
   }
@@ -253,4 +314,5 @@ module.exports = {
   updateOrderStatus,
   updatePaymentStatus,
   cancelOrder,
+  getOrderAnalytics,
 };

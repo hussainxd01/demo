@@ -11,7 +11,10 @@ const authService = {
   },
 
   async login(email, password) {
-    const response = await apiClient.post("/auth/login", { email, password });
+    const response = await apiClient.post("/auth/login", {
+      email,
+      password,
+    });
     const data = response?.data ?? response;
     if (data.accessToken && data.refreshToken) {
       await apiClient.setTokens(data.accessToken, data.refreshToken);

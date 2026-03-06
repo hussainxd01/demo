@@ -4,13 +4,13 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { X } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
-import { searchProducts } from "@/lib/api";
-import { BRANDS, CATEGORIES } from "@/lib/products";
+import { getBrands, searchProducts } from "@/lib/api";
 
 export default function SearchModal() {
   const { isSearchOpen, closeSearch, searchQuery, setSearchQuery } = useShop();
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [brands, setBrands] = useState([]);
 
   useEffect(() => {
     const performSearch = async () => {
@@ -18,10 +18,14 @@ export default function SearchModal() {
         setResults([]);
         return;
       }
+      if (searchQuery.trim().length < 2) {
+        setResults([]);
+        return;
+      }
 
       setIsLoading(true);
       try {
-        const products = await searchProducts(searchQuery);
+        const products = await searchProducts(searchQuery, { limit: 10 });
         setResults(products);
       } catch (error) {
         console.error("Search error:", error);
@@ -32,6 +36,19 @@ export default function SearchModal() {
 
     performSearch();
   }, [searchQuery]);
+
+  useEffect(() => {
+    const loadBrands = async () => {
+      if (!isSearchOpen) return;
+      try {
+        const data = await getBrands();
+        setBrands(data);
+      } catch (error) {
+        console.error("Failed to load brands:", error);
+      }
+    };
+    loadBrands();
+  }, [isSearchOpen]);
 
   const handleClose = () => {
     setSearchQuery("");
@@ -85,10 +102,10 @@ export default function SearchModal() {
                     Popular Brands
                   </h3>
                   <div className="space-y-3">
-                    {BRANDS.map((brand) => (
+                    {brands.map((brand) => (
                       <Link
                         key={brand}
-                        href={`/brand/${brand}`}
+                        href={`/brand/${encodeURIComponent(brand)}`}
                         className="block text-gray-800 hover:text-gray-600 transition-colors font-medium"
                         onClick={handleClose}
                       >
@@ -138,14 +155,14 @@ export default function SearchModal() {
                   <div className="space-y-4">
                     {results.map((product) => (
                       <Link
-                        key={product.id}
-                        href={`/product/${product.id}`}
+                        key={product._id}
+                        href={`/product/${product._id}`}
                         className="flex items-center gap-4 pb-4 border-b border-gray-200 hover:bg-gray-50 -mx-2 px-2 py-2 rounded transition-colors"
                         onClick={handleClose}
                       >
                         <div className="w-16 h-16 bg-gray-200 rounded flex-shrink-0">
                           <img
-                            src={product.image}
+                            src={product.images?.[0]?.url || "/placeholder.jpg"}
                             alt={product.name}
                             className="w-full h-full object-cover rounded"
                           />
@@ -158,7 +175,7 @@ export default function SearchModal() {
                             {product.name}
                           </p>
                           <p className="text-sm text-gray-600">
-                            Rs. {product.price.toLocaleString()}
+                            Rs. {Number(product.price || 0).toLocaleString()}
                           </p>
                         </div>
                       </Link>

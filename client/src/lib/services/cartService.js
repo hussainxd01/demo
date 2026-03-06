@@ -1,55 +1,74 @@
 import { apiClient } from "@/lib/apiClient";
 
+function unwrap(response) {
+  return response?.data ?? response;
+}
+
 const cartService = {
   async getCart() {
     try {
-      return await apiClient.get("/cart");
+      const response = await apiClient.get("/cart");
+      return unwrap(response);
     } catch (error) {
-      return { items: [], subtotal: 0, total: 0 };
+      return { items: [] };
     }
   },
 
   async addToCart(productId, quantity = 1) {
-    return apiClient.post("/cart/add", { productId, quantity });
+    const response = await apiClient.post("/cart/add", { productId, quantity });
+    return unwrap(response);
   },
 
   async updateCartItem(productId, quantity) {
-    return apiClient.patch("/cart/update", { productId, quantity });
+    const response = await apiClient.patch("/cart/update", {
+      productId,
+      quantity,
+    });
+    return unwrap(response);
   },
 
   async removeFromCart(productId) {
-    return apiClient.post("/cart/remove", { productId });
+    const response = await apiClient.post("/cart/remove", { productId });
+    return unwrap(response);
   },
 
   async clearCart() {
-    return apiClient.delete("/cart/clear");
+    const response = await apiClient.delete("/cart/clear");
+    return unwrap(response);
   },
 
   async updateCart(cartData) {
-    return apiClient.patch("/cart", cartData);
+    const response = await apiClient.patch("/cart", cartData);
+    return unwrap(response);
   },
 
-  // Favorites
+  // Wishlist (Favorites)
   async getFavorites() {
     try {
-      return await apiClient.get("/users/favorites");
+      const response = await apiClient.get("/users/wishlist");
+      return unwrap(response);
     } catch (error) {
-      return { products: [] };
+      return { wishlist: [] };
     }
   },
 
   async addToFavorites(productId) {
-    return apiClient.post("/users/favorites", { productId });
+    const response = await apiClient.post("/users/wishlist/add", { productId });
+    return unwrap(response);
   },
 
   async removeFromFavorites(productId) {
-    return apiClient.delete(`/users/favorites/${productId}`);
+    const response = await apiClient.post("/users/wishlist/remove", {
+      productId,
+    });
+    return unwrap(response);
   },
 
   async isFavorite(productId) {
     try {
-      const response = await apiClient.get(`/users/favorites/${productId}`);
-      return response.isFavorite;
+      const response = await this.getFavorites();
+      const wishlist = response?.wishlist || [];
+      return wishlist.some((p) => p?._id === productId);
     } catch (error) {
       return false;
     }
