@@ -1,0 +1,245 @@
+const Product = require('../models/Product');
+const Review = require('../models/Review');
+const { AppError } = require('../middleware/errorHandler');
+const { sendSuccess, sendPaginatedResponse, getPaginationParams, buildFilter, buildSort, extractPublicIdFromUrl } = require('../utils/helpers');
+const { deleteImageFromCloudinary } = require('../config/cloudinary');
+
+// Get all products with filters, search, and pagination
+const getProducts = async (req, res, next) => {
+  try {
+    const { limit, page, skip } = getPaginationParams(req.query);
+    const filter = buildFilter(req.query);
+    const sort = buildSort(req.query);
+
+    const products = await Product.find(filter)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .select('-createdBy');
+
+    const total = await Product.countDocuments(filter);
+
+    sendPaginatedResponse(res, 200, products, {
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit),
+    }, 'Products fetched successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get single product by ID
+const getProductById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const product = await Product.findById(id)
+      .populate({
+        path: 'reviews',
+        select: 'rating title comment user images helpful unhelpful',
+      });
+
+    if (!product) {
+      throw new AppError('Product not found', 404);
+    }
+
+    sendSuccess(res, 200, product, 'Product fetched successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Create new product (Admin only)
+const createProduct = async (req, res, next) => {
+  try {
+    const productData = {
+      ...req.body,
+      createdBy: req.userId,
+    };
+
+    // Handle uploaded images
+    if (req.files && req.files.length > 0) {
+      productData.images = req.files.map(file => ({
+        url: file.secure_url,
+        publicId: extractPublicIdFromUrl(file.secure_url),
+      }));
+    }
+
+    const product = await Product.create(productData);
+    sendSuccess(res, 201, product, 'Product created successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update product (Admin only)
+const updateProduct = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    let product = await Product.findById(id);
+
+    if (!product) {
+      throw new AppError('Product not found', 404);
+    }
+
+    // Handle image updates
+    if (req.files && req.files.length > 0) {
+      // Delete old images from Cloudinary
+      if (product.images && product.images.length > 0) {
+        for (const image of product.images) {
+          await deleteImageFromCloudinary(image.publicId);
+        }
+      }
+
+      // Add new images
+      req.body.images = req.files.map(file => ({
+        url: file.secure_url,
+        publicId: extractPublicIdFromUrl(file.secure_url),
+      }));
+    }
+
+    product = await Product.findByIdAndUpdate(id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    sendSuccess(res, 200, product, 'Product updated successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Delete product (Admin only)
+const deleteProduct = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findById(id);
+
+    if (!product) {
+      throw new AppError('Product not found', 404);
+    }
+
+    // Delete images from Cloudinary
+    if (product.images && product.images.length > 0) {
+      for (const image of product.images) {
+        await deleteImageFromCloudinary(image.publicId);
+      }
+    }
+
+    await Product.findByIdAndDelete(id);
+    sendSuccess(res, 200, {}, 'Product deleted successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get product by category
+const getProductsByCategory = async (req, res, next) => {
+  try {
+    const { category } = req.params;
+    const { limit, page, skip } = getPaginationParams(req.query);
+    const sort = buildSort(req.query);
+
+    const products = await Product.find({ category: category.toUpperCase() })
+      .sort(sort)
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Product.countDocuments({ category: category.toUpperCase() });
+
+    sendPaginatedResponse(res, 200, products, {
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit),
+    }, 'Products by category fetched successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get products by brand
+const getProductsByBrand = async (req, res, next) => {
+  try {
+    const { brand } = req.params;
+    const { limit, page, skip } = getPaginationParams(req.query);
+    const sort = buildSort(req.query);
+
+    const products = await Product.find({ brand })
+      .sort(sort)
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Product.countDocuments({ brand });
+
+    sendPaginatedResponse(res, 200, products, {
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit),
+    }, 'Products by brand fetched successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Search products
+const searchProducts = async (req, res, next) => {
+  try {
+    const { query } = req.query;
+    const { limit, page, skip } = getPaginationParams(req.query);
+
+    if (!query || query.length < 2) {
+      throw new AppError('Search query must be at least 2 characters long', 400);
+    }
+
+    const products = await Product.find(
+      { $text: { $search: query } },
+      { score: { $meta: 'textScore' } }
+    )
+      .sort({ score: { $meta: 'textScore' } })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Product.find(
+      { $text: { $search: query } }
+    ).countDocuments();
+
+    sendPaginatedResponse(res, 200, products, {
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit),
+    }, 'Search results fetched successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get featured products
+const getFeaturedProducts = async (req, res, next) => {
+  try {
+    const limit = 8;
+    const products = await Product.find({ isActive: true })
+      .sort({ rating: -1, reviewCount: -1 })
+      .limit(limit);
+
+    sendSuccess(res, 200, products, 'Featured products fetched successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  getProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  getProductsByCategory,
+  getProductsByBrand,
+  searchProducts,
+  getFeaturedProducts,
+};
