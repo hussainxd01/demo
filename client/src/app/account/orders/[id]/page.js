@@ -49,11 +49,14 @@ export default function OrderDetailPage() {
 
     const loadOrder = async () => {
       try {
+        console.log("[v0] Loading order with ID:", orderId, "Type:", typeof orderId, "Length:", orderId?.length);
         setIsLoading(true);
         const response = await orderService.getOrderById(orderId);
+        console.log("[v0] Order loaded successfully:", response);
         setOrder(response);
         setError("");
       } catch (err) {
+        console.log("[v0] Error loading order:", err.message);
         setError(
           err.message || "Failed to load order details. Please try again.",
         );
