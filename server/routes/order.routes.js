@@ -17,6 +17,13 @@ router.post(
 );
 
 /**
+ * @route   GET /api/v1/orders/my-orders
+ * @desc    Get user's orders
+ * @access  Private
+ */
+router.get("/my-orders", protect, orderController.getUserOrders);
+
+/**
  * @route   GET /api/v1/orders/admin/all
  * @desc    Get all orders (Admin only)
  * @access  Private (Admin)
@@ -39,13 +46,6 @@ router.get(
   restrictTo("admin"),
   orderController.getOrderAnalytics,
 );
-
-/**
- * @route   GET /api/v1/orders/my-orders
- * @desc    Get user's orders
- * @access  Private
- */
-router.get("/my-orders", protect, orderController.getUserOrders);
 
 /**
  * @route   GET /api/v1/orders/:id
