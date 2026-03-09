@@ -32,7 +32,9 @@ export default function OrdersAdminPage() {
         10,
         statusFilter ? { status: statusFilter } : {},
       );
-      setOrders(response.orders || []);
+      // Response structure: { data: [...orders], total, page, limit, pages, ... }
+      const ordersData = response.data || response;
+      setOrders(Array.isArray(ordersData) ? ordersData : []);
       setPagination({ total: response.total, limit: 10 });
     } catch (error) {
       console.error("Failed to load orders", error);
@@ -65,19 +67,19 @@ export default function OrdersAdminPage() {
       key: "customer",
       label: "Customer",
       width: "20%",
-      render: (_, row) => `${row.userId?.firstName} ${row.userId?.lastName}`,
+      render: (_, row) => row.user?.name || "-",
     },
     {
       key: "email",
       label: "Email",
       width: "20%",
-      render: (_, row) => row.userId?.email,
+      render: (_, row) => row.user?.email || "-",
     },
     {
-      key: "totalAmount",
+      key: "total",
       label: "Total",
       width: "15%",
-      render: (value) => `Rs. ${value.toFixed(2)}`,
+      render: (value) => `Rs. ${value?.toFixed(2) || "0.00"}`,
     },
     {
       key: "status",

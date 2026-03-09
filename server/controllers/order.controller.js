@@ -146,7 +146,6 @@ const getUserOrders = async (req, res, next) => {
 const getOrderById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    console.log("[v0] getOrderById called with ID:", id, "Type:", typeof id, "Length:", id.length);
 
     const order = await Order.findById(id)
       .populate("user", "name email phone")
@@ -163,7 +162,6 @@ const getOrderById = async (req, res, next) => {
 
     sendSuccess(res, 200, order, "Order fetched successfully");
   } catch (error) {
-    console.log("[v0] Error in getOrderById:", error.name, error.message);
     next(error);
   }
 };

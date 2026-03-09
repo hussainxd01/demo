@@ -3,7 +3,6 @@ import { apiClient } from "@/lib/apiClient";
 const orderService = {
   async createOrder(orderData) {
     const response = await apiClient.post("/orders", orderData);
-    console.log("[v0] createOrder response:", response);
     return response.data || response;
   },
 
@@ -14,15 +13,9 @@ const orderService = {
   },
 
   async getOrderById(orderId) {
-    console.log("[v0] orderService.getOrderById called with:", orderId);
-    const url = `/orders/${orderId}`;
-    console.log("[v0] Making GET request to:", url);
-    const response = await apiClient.get(url);
-    console.log("[v0] API Response received:", response);
+    const response = await apiClient.get(`/orders/${orderId}`);
     // Extract the data field if it exists, otherwise return the response as-is
-    const order = response.data || response;
-    console.log("[v0] Extracted order data:", order);
-    return order;
+    return response.data || response;
   },
 
   async cancelOrder(orderId) {
