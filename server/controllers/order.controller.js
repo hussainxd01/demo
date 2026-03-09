@@ -147,11 +147,6 @@ const getOrderById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // Validate MongoDB ObjectId format
-    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-      throw new AppError("Invalid order ID format", 400);
-    }
-
     const order = await Order.findById(id)
       .populate("user", "name email phone")
       .populate("items.product");
