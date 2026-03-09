@@ -39,9 +39,11 @@ export default function OrdersPage() {
     const loadOrders = async () => {
       try {
         setIsLoading(true);
-        const response = await orderService.getOrders(page, 10);
-        setOrders(response.orders || []);
-        setTotalPages(Math.ceil(response.total / 10));
+        const response = await orderService.getUserOrders(page, 10);
+        // Response structure: { data: [...orders], total, page, limit, pages, ... }
+        const ordersData = response.data || response;
+        setOrders(Array.isArray(ordersData) ? ordersData : []);
+        setTotalPages(response.pages || 1);
       } catch (err) {
         setError("Failed to load orders");
         console.error(err);
@@ -120,7 +122,7 @@ export default function OrdersPage() {
                       <div>
                         <p className="text-sm text-gray-600">Total</p>
                         <p className="font-medium text-black">
-                          Rs. {order.totalAmount.toFixed(2)}
+                          Rs. {(order.total || 0).toFixed(2)}
                         </p>
                       </div>
                       <div>

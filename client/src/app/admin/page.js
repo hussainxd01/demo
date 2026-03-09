@@ -59,7 +59,7 @@ export default function AdminDashboard() {
     },
     {
       title: "Total Revenue",
-      value: `Rs. ${stats.totalRevenue.toFixed(2)}`,
+      value: `Rs. ${(stats.totalRevenue || 0).toFixed(2)}`,
       icon: TrendingUp,
       color: "bg-green-50 text-green-600",
       trend: "+8% this month",
@@ -184,11 +184,9 @@ export default function AdminDashboard() {
                   <td className="py-3 px-4">
                     {order._id.slice(-8).toUpperCase()}
                   </td>
-                  <td className="py-3 px-4">
-                    {order.userId?.firstName} {order.userId?.lastName}
-                  </td>
+                  <td className="py-3 px-4">{order.user?.name || "-"}</td>
                   <td className="py-3 px-4 font-medium">
-                    Rs. {order.totalAmount.toFixed(2)}
+                    Rs. {(order.total || 0).toFixed(2)}
                   </td>
                   <td className="py-3 px-4">
                     <span

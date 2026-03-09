@@ -25,7 +25,9 @@ export default function UsersAdminPage() {
         10,
         searchTerm ? { search: searchTerm } : {},
       );
-      setUsers(response.users || []);
+      // Response structure: { data: [...users], total, page, limit, pages, ... }
+      const usersData = response.data || response;
+      setUsers(Array.isArray(usersData) ? usersData : []);
       setPagination({ total: response.total, limit: 10 });
     } catch (error) {
       console.error("Failed to load users", error);
@@ -58,10 +60,9 @@ export default function UsersAdminPage() {
 
   const columns = [
     {
-      key: "firstName",
+      key: "name",
       label: "Name",
       width: "20%",
-      render: (_, row) => `${row.firstName} ${row.lastName}`,
     },
     {
       key: "email",
@@ -153,9 +154,7 @@ export default function UsersAdminPage() {
                 <label className="text-sm font-medium text-gray-700">
                   Name
                 </label>
-                <p className="mt-1 text-gray-900">
-                  {selectedUser.firstName} {selectedUser.lastName}
-                </p>
+                <p className="mt-1 text-gray-900">{selectedUser.name}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">

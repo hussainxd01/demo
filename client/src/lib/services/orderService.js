@@ -2,20 +2,27 @@ import { apiClient } from "@/lib/apiClient";
 
 const orderService = {
   async createOrder(orderData) {
-    return apiClient.post("/orders", orderData);
+    const response = await apiClient.post("/orders", orderData);
+    return response.data || response;
   },
 
   async getUserOrders(page = 1, limit = 10) {
     const params = new URLSearchParams({ page, limit });
-    return apiClient.get(`/orders/my-orders?${params.toString()}`);
+    const response = await apiClient.get(
+      `/orders/my-orders?${params.toString()}`,
+    );
+    return response.data || response;
   },
 
   async getOrderById(orderId) {
-    return apiClient.get(`/orders/${orderId}`);
+    const response = await apiClient.get(`/orders/${orderId}`);
+    // Extract the data field if it exists, otherwise return the response as-is
+    return response.data || response;
   },
 
   async cancelOrder(orderId) {
-    return apiClient.post(`/orders/${orderId}/cancel`, {});
+    const response = await apiClient.post(`/orders/${orderId}/cancel`, {});
+    return response.data || response;
   },
 
   // Admin operations
@@ -25,19 +32,30 @@ const orderService = {
       limit,
       ...filters,
     });
-    return apiClient.get(`/orders/admin/all?${params.toString()}`);
+    const response = await apiClient.get(
+      `/orders/admin/all?${params.toString()}`,
+    );
+    return response.data || response;
   },
 
   async updateOrderStatus(orderId, status, notes = "") {
-    return apiClient.patch(`/orders/${orderId}/status`, { status, notes });
+    const response = await apiClient.patch(`/orders/${orderId}/status`, {
+      status,
+      notes,
+    });
+    return response.data || response;
   },
 
   async updatePaymentStatus(orderId, paymentStatus) {
-    return apiClient.patch(`/orders/${orderId}/payment`, { paymentStatus });
+    const response = await apiClient.patch(`/orders/${orderId}/payment`, {
+      paymentStatus,
+    });
+    return response.data || response;
   },
 
   async getOrderAnalytics() {
-    return apiClient.get("/orders/admin/analytics");
+    const response = await apiClient.get("/orders/admin/analytics");
+    return response.data || response;
   },
 };
 

@@ -18,7 +18,9 @@ export default function FavoritesPage() {
     try {
       setIsLoading(true);
       const response = await cartService.getFavorites();
-      setFavorites(response.products || []);
+      // Response structure: { wishlist: [...products] }
+      const wishlist = response.wishlist || response.data || [];
+      setFavorites(Array.isArray(wishlist) ? wishlist : []);
     } catch (err) {
       setError("Failed to load favorites");
       console.error(err);

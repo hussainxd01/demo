@@ -34,7 +34,7 @@ export default function CheckoutPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [orderSuccess, setOrderSuccess] = useState(null);
-  const [step, setStep] = useState(1); // 1: Cart Review, 2: Shipping, 3: Payment, 4: Confirmation
+  const [step, setStep] = useState(1); // 1: Cart Review, 2: Shipping, 3: Payment, 4: Success Confirmation
 
   // Redirect if not authenticated or cart is empty
   useEffect(() => {
@@ -120,9 +120,10 @@ export default function CheckoutPage() {
       clearCart();
       setStep(4);
 
+      // Redirect to order detail page after 2 seconds
       setTimeout(() => {
-        router.push(`/account/orders/${response._id}`);
-      }, 3000);
+        router.push(`/account/orders/${response._id}?new=true`);
+      }, 2000);
     } catch (err) {
       setError(err.message || "Failed to create order. Please try again.");
     } finally {
@@ -348,6 +349,59 @@ export default function CheckoutPage() {
                 >
                   Continue to Payment
                 </button>
+              </div>
+            )}
+
+            {/* Step 4: Order Success Confirmation */}
+            {step === 4 && orderSuccess && (
+              <div className="space-y-6">
+                <div className="text-center py-8">
+                  <div className="flex justify-center mb-4">
+                    <CheckCircle className="w-16 h-16 text-green-600" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    Order Placed Successfully!
+                  </h2>
+                  <p className="text-gray-600 mb-6">
+                    Thank you for your order. We're processing it now.
+                  </p>
+
+                  <div className="bg-gray-50 rounded-lg p-6 text-left space-y-3 mb-6">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Order ID:</span>
+                      <span className="font-semibold text-gray-900">
+                        {orderSuccess._id.slice(-8).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Total Amount:</span>
+                      <span className="font-semibold text-gray-900">
+                        Rs. {orderSuccess.total?.toFixed(2) || "0.00"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Status:</span>
+                      <span className="font-semibold text-yellow-600 capitalize">
+                        {orderSuccess.status || "Pending"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-gray-600 mb-6">
+                    You will be redirected to your order details shortly...
+                  </p>
+
+                  <button
+                    onClick={() =>
+                      router.push(
+                        `/account/orders/${orderSuccess._id}?new=true`,
+                      )
+                    }
+                    className="w-full px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
+                  >
+                    View Order Details
+                  </button>
+                </div>
               </div>
             )}
 

@@ -39,18 +39,18 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="font-sans antialiased bg-white">
-        <ErrorBoundary>
-          <AuthProvider>
-            <ShopProvider>
-              <Header />
-              <Navigation />
-              <SearchModal />
-              <Cart />
-              <main>{children}</main>
-              <Toast />
-            </ShopProvider>
-          </AuthProvider>
-        </ErrorBoundary>
+        {/* <ErrorBoundary> */}
+        <AuthProvider>
+          <ShopProvider>
+            <Header />
+            <Navigation />
+            <SearchModal />
+            <Cart />
+            <main>{children}</main>
+            <Toast />
+          </ShopProvider>
+        </AuthProvider>
+        {/* </ErrorBoundary> */}
       </body>
     </html>
   );
