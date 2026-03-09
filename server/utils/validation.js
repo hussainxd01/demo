@@ -1,11 +1,11 @@
-const Joi = require('joi');
+const Joi = require("joi");
 
 const authValidation = {
   register: Joi.object({
     name: Joi.string().required().min(2).max(50),
     email: Joi.string().email().required(),
     password: Joi.string().required().min(6),
-    confirmPassword: Joi.string().required().valid(Joi.ref('password')),
+    confirmPassword: Joi.string().required().valid(Joi.ref("password")),
   }).unknown(false),
 
   login: Joi.object({
@@ -25,7 +25,7 @@ const productValidation = {
     price: Joi.number().required().positive(),
     category: Joi.string()
       .required()
-      .valid('SKINCARE', 'BODY CARE', 'BABY & KIDS', 'HAIR CARE'),
+      .valid("SKINCARE", "BODY CARE", "BABY & KIDS", "HAIR CARE"),
     brand: Joi.string().required(),
     stock: Joi.number().required().min(0),
     sku: Joi.string().required(),
@@ -95,7 +95,7 @@ const userValidation = {
   changePassword: Joi.object({
     currentPassword: Joi.string().required(),
     newPassword: Joi.string().required().min(6),
-    confirmPassword: Joi.string().required().valid(Joi.ref('newPassword')),
+    confirmPassword: Joi.string().required().valid(Joi.ref("newPassword")),
   }).unknown(false),
 };
 
@@ -103,6 +103,7 @@ const orderValidation = {
   create: Joi.object({
     shippingAddress: Joi.object({
       name: Joi.string().required(),
+      email: Joi.string().email().optional(), // ✅ add this
       phone: Joi.string().required(),
       address: Joi.string().required(),
       city: Joi.string().required(),
@@ -110,11 +111,12 @@ const orderValidation = {
       country: Joi.string().required(),
       postalCode: Joi.string().required(),
     }).required(),
-    paymentMethod: Joi.string().required().valid('card', 'paypal', 'cod'),
-    notes: Joi.string(),
+
+    paymentMethod: Joi.string().valid("card", "paypal", "cod").required(),
+
+    notes: Joi.string().allow(""),
   }).unknown(false),
 };
-
 const reviewValidation = {
   create: Joi.object({
     rating: Joi.number().required().min(1).max(5),

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema(
   {
@@ -8,15 +8,18 @@ const orderSchema = new mongoose.Schema(
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
     items: [
       {
+        // Support both 'product' (ObjectId ref) and 'productId' (sent from frontend)
         product: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: 'Product',
-          required: true,
+          ref: "Product",
+        },
+        productId: {
+          type: String,
         },
         quantity: {
           type: Number,
@@ -28,46 +31,54 @@ const orderSchema = new mongoose.Schema(
         },
       },
     ],
+
+    // Frontend sends as 'shippingAddress' — keeping both names supported
     shippingAddress: {
-      name: {
-        type: String,
-        required: true,
-      },
-      phone: {
-        type: String,
-        required: true,
-      },
-      address: {
-        type: String,
-        required: true,
-      },
-      city: {
-        type: String,
-        required: true,
-      },
-      state: {
-        type: String,
-        required: true,
-      },
-      country: {
-        type: String,
-        required: true,
-      },
-      postalCode: {
-        type: String,
-        required: true,
-      },
+      name: { type: String },
+      phone: { type: String },
+      address: { type: String },
+      city: { type: String },
+      state: { type: String },
+      country: { type: String },
+      postalCode: { type: String },
+      email: { type: String },
     },
+
+    // Frontend also sends shippingInfo — alias stored here
+    shippingInfo: {
+      name: { type: String },
+      phone: { type: String },
+      address: { type: String },
+      city: { type: String },
+      state: { type: String },
+      country: { type: String },
+      postalCode: { type: String },
+      email: { type: String },
+    },
+
+    // Frontend sends billingInfo
+    billingInfo: {
+      name: { type: String },
+      phone: { type: String },
+      address: { type: String },
+      city: { type: String },
+      state: { type: String },
+      country: { type: String },
+      postalCode: { type: String },
+      email: { type: String },
+    },
+
     paymentMethod: {
       type: String,
-      enum: ['card', 'paypal', 'cod'],
+      enum: ["card", "paypal", "cod"],
       required: true,
     },
     paymentStatus: {
       type: String,
-      enum: ['pending', 'completed', 'failed', 'refunded'],
-      default: 'pending',
+      enum: ["pending", "completed", "failed", "refunded"],
+      default: "pending",
     },
+
     subtotal: {
       type: Number,
       required: true,
@@ -76,7 +87,12 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // Support both 'shipping' and 'shippingCost' from frontend
     shipping: {
+      type: Number,
+      default: 0,
+    },
+    shippingCost: {
       type: Number,
       default: 0,
     },
@@ -88,10 +104,17 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+
+    // Frontend sends giftWrap
+    giftWrap: {
+      type: Boolean,
+      default: false,
+    },
+
     status: {
       type: String,
-      enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'],
-      default: 'pending',
+      enum: ["pending", "confirmed", "shipped", "delivered", "cancelled"],
+      default: "pending",
     },
     trackingNumber: String,
     notes: String,
@@ -106,18 +129,30 @@ const orderSchema = new mongoose.Schema(
       },
     ],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Generate order number before saving
-orderSchema.pre('save', async function (next) {
+orderSchema.pre("save", async function (next) {
   if (this.isNew) {
-    const count = await mongoose.model('Order').countDocuments();
+    // Normalize: if frontend sent shippingInfo but not shippingAddress, copy it over
+    if (!this.shippingAddress?.name && this.shippingInfo?.name) {
+      this.shippingAddress = this.shippingInfo;
+    }
+    // Normalize: if frontend sent shippingAddress but not shippingInfo, copy it over
+    if (!this.shippingInfo?.name && this.shippingAddress?.name) {
+      this.shippingInfo = this.shippingAddress;
+    }
+    // Normalize shippingCost → shipping
+    if (!this.shipping && this.shippingCost) {
+      this.shipping = this.shippingCost;
+    }
+
+    const count = await mongoose.model("Order").countDocuments();
     this.orderNumber = `ORD-${Date.now()}-${count + 1}`;
   }
   next();
 });
 
-const Order = mongoose.model('Order', orderSchema);
-
+const Order = mongoose.model("Order", orderSchema);
 module.exports = Order;

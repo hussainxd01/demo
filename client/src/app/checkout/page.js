@@ -25,7 +25,7 @@ export default function CheckoutPage() {
   });
 
   const [orderData, setOrderData] = useState({
-    shippingInfo: {},
+    shippingAddress: {},
     paymentMethod: "cod", // Cash on Delivery
     giftWrap: false,
     notes: "",
@@ -98,20 +98,20 @@ export default function CheckoutPage() {
 
     try {
       const orderPayload = {
-        items: cart.map((item) => ({
-          productId: item._id || item.id,
-          quantity: item.quantity,
-          price: item.price,
-        })),
-        shippingInfo: formData,
-        billingInfo: formData,
+        shippingAddress: {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          country: formData.country,
+          postalCode: formData.postalCode,
+        },
+
         paymentMethod: orderData.paymentMethod,
-        giftWrap: orderData.giftWrap,
-        notes: orderData.notes,
-        subtotal,
-        shippingCost,
-        tax,
-        total,
+
+        notes: orderData.notes || "",
       };
 
       const response = await orderService.createOrder(orderPayload);
@@ -129,31 +129,6 @@ export default function CheckoutPage() {
       setIsLoading(false);
     }
   };
-
-  if (orderSuccess) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center px-4 py-12">
-        <div className="max-w-md text-center animate-scale-in">
-          <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-6" />
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Order Confirmed!
-          </h1>
-          <p className="text-gray-600 mb-2">Thank you for your purchase.</p>
-          <p className="text-sm text-gray-500 mb-8">
-            Order ID:{" "}
-            <span className="font-mono font-semibold">{orderSuccess._id}</span>
-          </p>
-          <p className="text-gray-600 mb-8">Redirecting to your orders...</p>
-          <Link
-            href="/account/orders"
-            className="inline-block px-8 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
-          >
-            View Order Details
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-white animate-fade-in">
