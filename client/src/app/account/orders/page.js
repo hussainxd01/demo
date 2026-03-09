@@ -122,7 +122,7 @@ export default function OrdersPage() {
                       <div>
                         <p className="text-sm text-gray-600">Total</p>
                         <p className="font-medium text-black">
-                          Rs. {order.totalAmount.toFixed(2)}
+                          Rs. {(order.total || 0).toFixed(2)}
                         </p>
                       </div>
                       <div>
