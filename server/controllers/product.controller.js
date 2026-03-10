@@ -1,8 +1,15 @@
-const Product = require('../models/Product');
-const Review = require('../models/Review');
-const { AppError } = require('../middleware/errorHandler');
-const { sendSuccess, sendPaginatedResponse, getPaginationParams, buildFilter, buildSort, extractPublicIdFromUrl } = require('../utils/helpers');
-const { deleteImageFromCloudinary } = require('../config/cloudinary');
+const Product = require("../models/Product");
+const Review = require("../models/Review");
+const { AppError } = require("../middleware/errorHandler");
+const {
+  sendSuccess,
+  sendPaginatedResponse,
+  getPaginationParams,
+  buildFilter,
+  buildSort,
+  extractPublicIdFromUrl,
+} = require("../utils/helpers");
+const { deleteImageFromCloudinary } = require("../config/cloudinary");
 
 // Get all products with filters, search, and pagination
 const getProducts = async (req, res, next) => {
@@ -12,19 +19,26 @@ const getProducts = async (req, res, next) => {
     const sort = buildSort(req.query);
 
     const products = await Product.find(filter)
+      .populate("category", "name slug")
       .sort(sort)
       .skip(skip)
       .limit(limit)
-      .select('-createdBy');
+      .select("-createdBy");
 
     const total = await Product.countDocuments(filter);
 
-    sendPaginatedResponse(res, 200, products, {
-      total,
-      page,
-      limit,
-      pages: Math.ceil(total / limit),
-    }, 'Products fetched successfully');
+    sendPaginatedResponse(
+      res,
+      200,
+      products,
+      {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+      "Products fetched successfully",
+    );
   } catch (error) {
     next(error);
   }
@@ -36,16 +50,17 @@ const getProductById = async (req, res, next) => {
     const { id } = req.params;
 
     const product = await Product.findById(id)
+      .populate("category", "name slug")
       .populate({
-        path: 'reviews',
-        select: 'rating title comment user images helpful unhelpful',
+        path: "reviews",
+        select: "rating title comment user images helpful unhelpful",
       });
 
     if (!product) {
-      throw new AppError('Product not found', 404);
+      throw new AppError("Product not found", 404);
     }
 
-    sendSuccess(res, 200, product, 'Product fetched successfully');
+    sendSuccess(res, 200, product, "Product fetched successfully");
   } catch (error) {
     next(error);
   }
@@ -71,7 +86,7 @@ const createProduct = async (req, res, next) => {
     }
 
     const product = await Product.create(productData);
-    sendSuccess(res, 201, product, 'Product created successfully');
+    sendSuccess(res, 201, product, "Product created successfully");
   } catch (error) {
     next(error);
   }
@@ -84,7 +99,7 @@ const updateProduct = async (req, res, next) => {
     let product = await Product.findById(id);
 
     if (!product) {
-      throw new AppError('Product not found', 404);
+      throw new AppError("Product not found", 404);
     }
 
     // Handle image updates
@@ -111,7 +126,7 @@ const updateProduct = async (req, res, next) => {
       runValidators: true,
     });
 
-    sendSuccess(res, 200, product, 'Product updated successfully');
+    sendSuccess(res, 200, product, "Product updated successfully");
   } catch (error) {
     next(error);
   }
@@ -124,7 +139,7 @@ const deleteProduct = async (req, res, next) => {
     const product = await Product.findById(id);
 
     if (!product) {
-      throw new AppError('Product not found', 404);
+      throw new AppError("Product not found", 404);
     }
 
     // Delete images from Cloudinary
@@ -135,7 +150,7 @@ const deleteProduct = async (req, res, next) => {
     }
 
     await Product.findByIdAndDelete(id);
-    sendSuccess(res, 200, {}, 'Product deleted successfully');
+    sendSuccess(res, 200, {}, "Product deleted successfully");
   } catch (error) {
     next(error);
   }
@@ -148,19 +163,26 @@ const getProductsByCategory = async (req, res, next) => {
     const { limit, page, skip } = getPaginationParams(req.query);
     const sort = buildSort(req.query);
 
-    const products = await Product.find({ category: category.toUpperCase() })
+    const products = await Product.find({ category })
+      .populate("category", "name slug")
       .sort(sort)
       .skip(skip)
       .limit(limit);
 
-    const total = await Product.countDocuments({ category: category.toUpperCase() });
+    const total = await Product.countDocuments({ category });
 
-    sendPaginatedResponse(res, 200, products, {
-      total,
-      page,
-      limit,
-      pages: Math.ceil(total / limit),
-    }, 'Products by category fetched successfully');
+    sendPaginatedResponse(
+      res,
+      200,
+      products,
+      {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+      "Products by category fetched successfully",
+    );
   } catch (error) {
     next(error);
   }
@@ -180,12 +202,18 @@ const getProductsByBrand = async (req, res, next) => {
 
     const total = await Product.countDocuments({ brand });
 
-    sendPaginatedResponse(res, 200, products, {
-      total,
-      page,
-      limit,
-      pages: Math.ceil(total / limit),
-    }, 'Products by brand fetched successfully');
+    sendPaginatedResponse(
+      res,
+      200,
+      products,
+      {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+      "Products by brand fetched successfully",
+    );
   } catch (error) {
     next(error);
   }
@@ -198,27 +226,36 @@ const searchProducts = async (req, res, next) => {
     const { limit, page, skip } = getPaginationParams(req.query);
 
     if (!query || query.length < 2) {
-      throw new AppError('Search query must be at least 2 characters long', 400);
+      throw new AppError(
+        "Search query must be at least 2 characters long",
+        400,
+      );
     }
 
     const products = await Product.find(
       { $text: { $search: query } },
-      { score: { $meta: 'textScore' } }
+      { score: { $meta: "textScore" } },
     )
-      .sort({ score: { $meta: 'textScore' } })
+      .sort({ score: { $meta: "textScore" } })
       .skip(skip)
       .limit(limit);
 
-    const total = await Product.find(
-      { $text: { $search: query } }
-    ).countDocuments();
+    const total = await Product.find({
+      $text: { $search: query },
+    }).countDocuments();
 
-    sendPaginatedResponse(res, 200, products, {
-      total,
-      page,
-      limit,
-      pages: Math.ceil(total / limit),
-    }, 'Search results fetched successfully');
+    sendPaginatedResponse(
+      res,
+      200,
+      products,
+      {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+      "Search results fetched successfully",
+    );
   } catch (error) {
     next(error);
   }
@@ -232,7 +269,7 @@ const getFeaturedProducts = async (req, res, next) => {
       .sort({ rating: -1, reviewCount: -1 })
       .limit(limit);
 
-    sendSuccess(res, 200, products, 'Featured products fetched successfully');
+    sendSuccess(res, 200, products, "Featured products fetched successfully");
   } catch (error) {
     next(error);
   }
@@ -241,9 +278,9 @@ const getFeaturedProducts = async (req, res, next) => {
 // Get distinct active brands
 const getBrands = async (req, res, next) => {
   try {
-    const brands = await Product.distinct('brand', { isActive: true });
+    const brands = await Product.distinct("brand", { isActive: true });
     brands.sort((a, b) => String(a).localeCompare(String(b)));
-    sendSuccess(res, 200, { brands }, 'Brands fetched successfully');
+    sendSuccess(res, 200, { brands }, "Brands fetched successfully");
   } catch (error) {
     next(error);
   }

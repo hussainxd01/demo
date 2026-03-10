@@ -1,33 +1,33 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, 'Please provide a product name'],
+      required: [true, "Please provide a product name"],
       trim: true,
     },
     description: {
       type: String,
-      required: [true, 'Please provide a product description'],
+      required: [true, "Please provide a product description"],
     },
     price: {
       type: Number,
-      required: [true, 'Please provide a product price'],
+      required: [true, "Please provide a product price"],
       min: 0,
     },
     category: {
-      type: String,
-      required: [true, 'Please provide a category'],
-      enum: ['SKINCARE', 'BODY CARE', 'BABY & KIDS', 'HAIR CARE'],
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: [true, "Please provide a category"],
     },
     brand: {
       type: String,
-      required: [true, 'Please provide a brand'],
+      required: [true, "Please provide a brand"],
     },
     stock: {
       type: Number,
-      required: [true, 'Please provide stock quantity'],
+      required: [true, "Please provide stock quantity"],
       min: 0,
     },
     sku: {
@@ -82,24 +82,24 @@ const productSchema = new mongoose.Schema(
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
     },
     reviews: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Review',
+        ref: "Review",
       },
     ],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Index for better search performance
-productSchema.index({ name: 'text', description: 'text', brand: 'text' });
+productSchema.index({ name: "text", description: "text", brand: "text" });
 productSchema.index({ category: 1 });
 productSchema.index({ brand: 1 });
 productSchema.index({ price: 1 });
 
-const Product = mongoose.model('Product', productSchema);
+const Product = mongoose.model("Product", productSchema);
 
 module.exports = Product;

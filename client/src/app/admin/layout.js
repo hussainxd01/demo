@@ -13,6 +13,7 @@ import {
   LogOut,
   Loader,
   AlertCircle,
+  Tags,
 } from "lucide-react";
 
 export default function AdminLayout({ children }) {
@@ -62,6 +63,7 @@ export default function AdminLayout({ children }) {
   const navItems = [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/products", label: "Products", icon: Package },
+    { href: "/admin/categories", label: "Categories", icon: Tags },
     { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
     { href: "/admin/users", label: "Users", icon: Users },
     { href: "/admin/reviews", label: "Reviews", icon: MessageSquare },

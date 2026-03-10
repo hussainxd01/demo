@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader, Trash2, Upload } from "lucide-react";
+import { ArrowLeft, Loader, Trash2, Upload, X } from "lucide-react";
 import productService from "@/lib/services/productService";
 import categoryService from "@/lib/services/categoryService";
 
@@ -14,9 +15,11 @@ function splitList(value) {
     .filter(Boolean);
 }
 
-export default function CreateProductPage() {
+export default function EditProductPage({ params }) {
   const router = useRouter();
+  const { id } = useParams();
 
+  const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
 
@@ -31,13 +34,13 @@ export default function CreateProductPage() {
     isActive: true,
     instructions: "",
 
-    // Specifications (model: specifications.size/volume/weight/ingredients[])
+    // Specifications
     specSize: "",
     specVolume: "",
     specWeight: "",
     specIngredientsText: "",
 
-    // Shipping (model: shipping.weight + dimensions + estimatedDays + info)
+    // Shipping
     shippingWeight: "",
     shippingLength: "",
     shippingWidth: "",
@@ -50,36 +53,81 @@ export default function CreateProductPage() {
 
   const [images, setImages] = useState([]);
   const [previews, setPreviews] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
+  const [imagesToRemove, setImagesToRemove] = useState([]);
   const [errors, setErrors] = useState({});
   const [generalError, setGeneralError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Fetch product and categories on mount
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
-        setCategoriesLoading(true);
-        const data = await categoryService.getAllCategories();
-        setCategories(data);
-        // Set default category to first one
-        if (data.length > 0) {
-          setForm((prev) => ({ ...prev, category: data[0]._id }));
-        }
+        setIsLoading(true);
+
+        // Fetch categories
+        const categoriesData = await categoryService.getAllCategories();
+        setCategories(categoriesData);
+
+        // Fetch product
+        const product = await productService.getProductById(id);
+
+        // Map existing images
+        setExistingImages(product.images || []);
+
+        // Parse tags
+        const tagsText = (product.tags || []).join("\n");
+
+        // Parse specifications
+        const specs = product.specifications || {};
+        const ingredients = (specs.ingredients || []).join("\n");
+
+        // Parse shipping
+        const shipping = product.shipping || {};
+        const dimensions = shipping.dimensions || {};
+
+        // Set form data
+        setForm({
+          name: product.name || "",
+          description: product.description || "",
+          price: String(product.price || ""),
+          category: product.category?._id || "",
+          brand: product.brand || "",
+          stock: String(product.stock || ""),
+          sku: product.sku || "",
+          isActive: product.isActive !== false,
+          instructions: product.instructions || "",
+          specSize: specs.size || "",
+          specVolume: specs.volume || "",
+          specWeight: specs.weight || "",
+          specIngredientsText: ingredients,
+          shippingWeight: String(shipping.weight || ""),
+          shippingLength: String(dimensions.length || ""),
+          shippingWidth: String(dimensions.width || ""),
+          shippingHeight: String(dimensions.height || ""),
+          shippingEstimatedDays: shipping.estimatedDays || "",
+          shippingInfo: shipping.info || "",
+          tagsText,
+        });
       } catch (error) {
-        console.error("Error fetching categories:", error);
-        setGeneralError("Failed to load categories");
+        console.error("Error fetching data:", error);
+        setGeneralError("Failed to load product data");
       } finally {
+        setIsLoading(false);
         setCategoriesLoading(false);
       }
     };
 
-    fetchCategories();
-  }, []);
+    fetchData();
+  }, [id]);
 
   useEffect(() => {
     return () => {
-      previews.forEach((url) => URL.revokeObjectURL(url));
+      [...previews, ...existingImages].forEach((url) => {
+        if (url.startsWith("blob:")) URL.revokeObjectURL(url);
+      });
     };
-  }, [previews]);
+  }, [previews, existingImages]);
 
   const tags = useMemo(() => splitList(form.tagsText), [form.tagsText]);
 
@@ -104,7 +152,20 @@ export default function CreateProductPage() {
     const fileList = Array.from(e.target.files || []);
     if (fileList.length === 0) return;
 
-    const nextFiles = [...images, ...fileList].slice(0, 5);
+    const totalImages =
+      existingImages.filter((img) => !imagesToRemove.includes(img)).length +
+      images.length +
+      fileList.length;
+
+    if (totalImages > 5) {
+      setErrors((prev) => ({
+        ...prev,
+        images: `Maximum 5 images allowed (you have ${existingImages.filter((img) => !imagesToRemove.includes(img)).length} existing + ${images.length} new)`,
+      }));
+      return;
+    }
+
+    const nextFiles = [...images, ...fileList];
 
     previews.forEach((url) => URL.revokeObjectURL(url));
     const nextPreviews = nextFiles.map((f) => URL.createObjectURL(f));
@@ -115,12 +176,17 @@ export default function CreateProductPage() {
     if (generalError) setGeneralError("");
   };
 
-  const removeImage = (index) => {
+  const removeNewImage = (index) => {
     const nextFiles = images.filter((_, i) => i !== index);
     previews.forEach((url) => URL.revokeObjectURL(url));
     const nextPreviews = nextFiles.map((f) => URL.createObjectURL(f));
     setImages(nextFiles);
     setPreviews(nextPreviews);
+  };
+
+  const removeExistingImage = (imageUrl) => {
+    setImagesToRemove((prev) => [...prev, imageUrl]);
+    setExistingImages((prev) => prev.filter((img) => img !== imageUrl));
   };
 
   const validate = () => {
@@ -146,7 +212,10 @@ export default function CreateProductPage() {
 
     if (!form.sku.trim()) nextErrors.sku = "SKU is required";
 
-    if (images.length === 0) nextErrors.images = "Please add at least 1 image";
+    // Check total images
+    const totalImages = existingImages.length + images.length;
+    if (totalImages === 0)
+      nextErrors.images = "Please keep at least 1 image or add new ones";
 
     return nextErrors;
   };
@@ -209,6 +278,17 @@ export default function CreateProductPage() {
       fd.append("tags", JSON.stringify(tags));
     }
 
+    // Add existing images to keep
+    if (existingImages.length > 0) {
+      fd.append("existingImages", JSON.stringify(existingImages));
+    }
+
+    // Add images to remove
+    if (imagesToRemove.length > 0) {
+      fd.append("imagesToRemove", JSON.stringify(imagesToRemove));
+    }
+
+    // Add new image files
     images.forEach((file) => fd.append("images", file));
 
     return fd;
@@ -227,14 +307,22 @@ export default function CreateProductPage() {
     setIsSubmitting(true);
     try {
       const payload = buildPayload();
-      await productService.createProduct(payload);
+      await productService.updateProduct(id, payload);
       router.push("/admin/products");
     } catch (error) {
-      setGeneralError(error?.message || "Failed to create product");
+      setGeneralError(error?.message || "Failed to update product");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader className="w-8 h-8 animate-spin text-gray-700" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -247,7 +335,7 @@ export default function CreateProductPage() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
-          <h1 className="text-3xl font-bold text-black">Add Product</h1>
+          <h1 className="text-3xl font-bold text-black">Edit Product</h1>
         </div>
       </div>
 
@@ -457,28 +545,63 @@ export default function CreateProductPage() {
                     <p className="text-red-500 text-sm mt-3">{errors.images}</p>
                   )}
 
-                  {previews.length > 0 && (
-                    <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      {previews.map((src, idx) => (
-                        <div
-                          key={src}
-                          className="relative border border-gray-200 rounded-lg overflow-hidden bg-white"
-                        >
-                          <img
-                            src={src}
-                            alt={`Preview ${idx + 1}`}
-                            className="w-full h-28 object-cover"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(idx)}
-                            className="absolute top-2 right-2 p-2 rounded-md bg-white/90 hover:bg-white border border-gray-200"
-                            title="Remove"
+                  {/* Existing Images */}
+                  {existingImages.length > 0 && (
+                    <div className="mt-5">
+                      <p className="text-xs text-gray-600 mb-3">
+                        Existing images
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {existingImages.map((src) => (
+                          <div
+                            key={src}
+                            className="relative border border-gray-200 rounded-lg overflow-hidden bg-white"
                           >
-                            <Trash2 className="w-4 h-4 text-gray-700" />
-                          </button>
-                        </div>
-                      ))}
+                            <img
+                              src={src}
+                              alt="Existing"
+                              className="w-full h-28 object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeExistingImage(src)}
+                              className="absolute top-2 right-2 p-2 rounded-md bg-white/90 hover:bg-white border border-gray-200"
+                              title="Remove"
+                            >
+                              <Trash2 className="w-4 h-4 text-gray-700" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* New Images */}
+                  {previews.length > 0 && (
+                    <div className="mt-5">
+                      <p className="text-xs text-gray-600 mb-3">New images</p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {previews.map((src, idx) => (
+                          <div
+                            key={src}
+                            className="relative border border-blue-200 rounded-lg overflow-hidden bg-blue-50"
+                          >
+                            <img
+                              src={src}
+                              alt={`Preview ${idx + 1}`}
+                              className="w-full h-28 object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeNewImage(idx)}
+                              className="absolute top-2 right-2 p-2 rounded-md bg-white/90 hover:bg-white border border-gray-200"
+                              title="Remove"
+                            >
+                              <Trash2 className="w-4 h-4 text-gray-700" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -693,10 +816,10 @@ export default function CreateProductPage() {
               {isSubmitting ? (
                 <>
                   <Loader className="w-4 h-4 animate-spin" />
-                  Creating...
+                  Updating...
                 </>
               ) : (
-                "Create Product"
+                "Update Product"
               )}
             </button>
           </div>
