@@ -67,9 +67,11 @@ export default function ProductPage() {
 
   const imageUrls = (product.images || []).map((img) => img.url);
 
-  const categorySlug =
-    CATEGORIES.find((c) => c.name === product.category)?.slug ||
-    product.category.toLowerCase().replace(/\s+/g, "-").replace(/&/g, "");
+  const categoryName = typeof product.category === 'object' ? product.category.name : product.category;
+  const categorySlug = typeof product.category === 'object' 
+    ? product.category.slug 
+    : CATEGORIES.find((c) => c.name === categoryName)?.slug ||
+      categoryName.toLowerCase().replace(/\s+/g, "-").replace(/&/g, "");
 
   const ingredients = product.specifications?.ingredients || [];
 
@@ -93,7 +95,7 @@ export default function ProductPage() {
           href={`/category/${categorySlug}`}
           className="hover:text-gray-900 transition-colors"
         >
-          {product.category}
+          {categoryName}
         </Link>
 
         <span>/</span>

@@ -112,6 +112,12 @@ export default function ProductsAdminPage() {
       key: "category",
       label: "Category",
       width: "15%",
+      render: (value) => {
+        if (typeof value === 'object' && value?.name) {
+          return value.name;
+        }
+        return value || 'N/A';
+      },
     },
     {
       key: "rating",
