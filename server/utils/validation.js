@@ -23,9 +23,7 @@ const productValidation = {
     name: Joi.string().required().min(3).max(100),
     description: Joi.string().required().min(10),
     price: Joi.number().required().positive(),
-    category: Joi.string()
-      .required()
-      .valid("SKINCARE", "BODY CARE", "BABY & KIDS", "HAIR CARE"),
+    category: Joi.string().required().regex(/^[0-9a-fA-F]{24}$/),
     brand: Joi.string().required(),
     stock: Joi.number().required().min(0),
     sku: Joi.string().required(),
@@ -54,7 +52,7 @@ const productValidation = {
     name: Joi.string().min(3).max(100),
     description: Joi.string().min(10),
     price: Joi.number().positive(),
-    category: Joi.string(),
+    category: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     brand: Joi.string(),
     stock: Joi.number().min(0),
     sku: Joi.string(),
@@ -117,6 +115,20 @@ const orderValidation = {
     notes: Joi.string().allow(""),
   }).unknown(false),
 };
+const categoryValidation = {
+  create: Joi.object({
+    name: Joi.string().required().min(2).max(50),
+    description: Joi.string().required().min(5).max(500),
+    isActive: Joi.boolean().default(true),
+  }).unknown(false),
+
+  update: Joi.object({
+    name: Joi.string().min(2).max(50),
+    description: Joi.string().min(5).max(500),
+    isActive: Joi.boolean(),
+  }).unknown(false),
+};
+
 const reviewValidation = {
   create: Joi.object({
     rating: Joi.number().required().min(1).max(5),
@@ -146,6 +158,7 @@ const validate = (schema) => {
 module.exports = {
   authValidation,
   productValidation,
+  categoryValidation,
   userValidation,
   orderValidation,
   reviewValidation,
