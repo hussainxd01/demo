@@ -65,11 +65,11 @@ export default function CategoriesPage() {
 
       if (editingCategory) {
         // Update existing category
-        await categoryService.updateCategory(editingCategory._id, formData, token);
+        await categoryService.updateCategory(editingCategory._id, formData);
         setSuccess('Category updated successfully');
       } else {
         // Create new category
-        await categoryService.createCategory(formData, token);
+        await categoryService.createCategory(formData);
         setSuccess('Category created successfully');
       }
 
@@ -101,7 +101,7 @@ export default function CategoriesPage() {
       setIsSubmitting(true);
       setError(null);
 
-      await categoryService.deleteCategory(deleteConfirm._id, token);
+      await categoryService.deleteCategory(deleteConfirm._id);
       setSuccess('Category deleted successfully');
 
       setDeleteConfirm(null);
