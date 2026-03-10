@@ -3,19 +3,17 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Plus, Search, Loader } from "lucide-react";
+import { useRouter } from "next/navigation";
 import productService from "@/lib/services/productService";
 import DataTable from "@/components/admin/DataTable";
-import FormModal from "@/components/admin/FormModal";
 
 export default function ProductsAdminPage() {
+  const router = useRouter();
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ total: 0, limit: 10 });
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isModalLoading, setIsModalLoading] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
 
   useEffect(() => {
     loadProducts();
@@ -38,43 +36,8 @@ export default function ProductsAdminPage() {
     }
   };
 
-  const handleOpenEditModal = (product) => {
-    setEditingProduct(product);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingProduct(null);
-  };
-
-  const handleSubmitForm = async (formData) => {
-    try {
-      setIsModalLoading(true);
-      const preparedData = {
-        name: formData.name,
-        brand: formData.brand,
-        price: parseFloat(formData.price),
-        stock: parseInt(formData.stock),
-        category: formData.category,
-        description: formData.description,
-      };
-
-      // Update product
-      await productService.updateProduct(editingProduct._id, preparedData);
-      setProducts((prev) =>
-        prev.map((p) =>
-          p._id === editingProduct._id ? { ...p, ...preparedData } : p,
-        ),
-      );
-
-      handleCloseModal();
-    } catch (error) {
-      console.error("Failed to save product", error);
-      throw error;
-    } finally {
-      setIsModalLoading(false);
-    }
+  const handleOpenEditPage = (product) => {
+    router.push(`/admin/products/edit/${product._id}`);
   };
 
   const handleDelete = async (productId) => {
@@ -127,52 +90,6 @@ export default function ProductsAdminPage() {
     },
   ];
 
-  const productFields = [
-    {
-      name: "name",
-      label: "Product Name",
-      type: "text",
-      placeholder: "Enter product name",
-      required: true,
-    },
-    {
-      name: "brand",
-      label: "Brand",
-      type: "text",
-      placeholder: "Enter brand",
-      required: true,
-    },
-    {
-      name: "price",
-      label: "Price (Rs.)",
-      type: "number",
-      placeholder: "0.00",
-      step: "0.01",
-      required: true,
-    },
-    {
-      name: "stock",
-      label: "Stock Quantity",
-      type: "number",
-      placeholder: "0",
-      required: true,
-    },
-    {
-      name: "category",
-      label: "Category",
-      type: "text",
-      placeholder: "Enter category",
-      required: true,
-    },
-    {
-      name: "description",
-      label: "Description",
-      type: "textarea",
-      placeholder: "Enter product description",
-      rows: 4,
-    },
-  ];
-
   return (
     <>
       <div className="space-y-6">
@@ -210,7 +127,7 @@ export default function ProductsAdminPage() {
             <DataTable
               columns={columns}
               data={products}
-              onEdit={handleOpenEditModal}
+              onEdit={handleOpenEditPage}
               onDelete={handleDelete}
               pagination={{ ...pagination, page }}
               onPageChange={setPage}
@@ -218,28 +135,6 @@ export default function ProductsAdminPage() {
           )}
         </div>
       </div>
-
-      <FormModal
-        isOpen={isModalOpen}
-        title="Edit Product"
-        fields={productFields}
-        initialData={
-          editingProduct
-            ? {
-                name: editingProduct.name,
-                brand: editingProduct.brand,
-                price: editingProduct.price,
-                stock: editingProduct.stock,
-                category: editingProduct.category,
-                description: editingProduct.description,
-              }
-            : {}
-        }
-        onSubmit={handleSubmitForm}
-        onClose={handleCloseModal}
-        isLoading={isModalLoading}
-        submitText="Update Product"
-      />
     </>
   );
 }
