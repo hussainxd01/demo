@@ -12,6 +12,7 @@ const getProducts = async (req, res, next) => {
     const sort = buildSort(req.query);
 
     const products = await Product.find(filter)
+      .populate('category', 'name slug')
       .sort(sort)
       .skip(skip)
       .limit(limit)
@@ -36,6 +37,7 @@ const getProductById = async (req, res, next) => {
     const { id } = req.params;
 
     const product = await Product.findById(id)
+      .populate('category', 'name slug')
       .populate({
         path: 'reviews',
         select: 'rating title comment user images helpful unhelpful',
@@ -148,12 +150,13 @@ const getProductsByCategory = async (req, res, next) => {
     const { limit, page, skip } = getPaginationParams(req.query);
     const sort = buildSort(req.query);
 
-    const products = await Product.find({ category: category.toUpperCase() })
+    const products = await Product.find({ category })
+      .populate('category', 'name slug')
       .sort(sort)
       .skip(skip)
       .limit(limit);
 
-    const total = await Product.countDocuments({ category: category.toUpperCase() });
+    const total = await Product.countDocuments({ category });
 
     sendPaginatedResponse(res, 200, products, {
       total,

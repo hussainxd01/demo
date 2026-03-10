@@ -5,8 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader, Trash2, Upload } from "lucide-react";
 import productService from "@/lib/services/productService";
-
-const CATEGORIES = ["SKINCARE", "BODY CARE", "BABY & KIDS", "HAIR CARE"];
+import categoryService from "@/lib/services/categoryService";
 
 function splitList(value) {
   return value
@@ -18,11 +17,14 @@ function splitList(value) {
 export default function CreateProductPage() {
   const router = useRouter();
 
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+
   const [form, setForm] = useState({
     name: "",
     description: "",
     price: "",
-    category: CATEGORIES[0],
+    category: "",
     brand: "",
     stock: "",
     sku: "",
@@ -51,6 +53,27 @@ export default function CreateProductPage() {
   const [errors, setErrors] = useState({});
   const [generalError, setGeneralError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setCategoriesLoading(true);
+        const data = await categoryService.getAllCategories();
+        setCategories(data);
+        // Set default category to first one
+        if (data.length > 0) {
+          setForm((prev) => ({ ...prev, category: data[0]._id }));
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        setGeneralError("Failed to load categories");
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -323,10 +346,14 @@ export default function CreateProductPage() {
                     value={form.category}
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                    disabled={categoriesLoading}
                   >
-                    {CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
+                    <option value="">
+                      {categoriesLoading ? "Loading categories..." : "Select a category"}
+                    </option>
+                    {categories.map((c) => (
+                      <option key={c._id} value={c._id}>
+                        {c.name}
                       </option>
                     ))}
                   </select>

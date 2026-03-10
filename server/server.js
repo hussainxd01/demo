@@ -12,6 +12,7 @@ const cartRoutes = require("./routes/cart.routes");
 const orderRoutes = require("./routes/order.routes");
 const reviewRoutes = require("./routes/review.routes");
 const uploadRoutes = require("./routes/upload.routes");
+const categoryRoutes = require("./routes/category.routes");
 
 // Import middleware
 const { errorHandler } = require("./middleware/errorHandler");
@@ -37,6 +38,7 @@ connectDB();
 const apiPrefix = "/api/v1";
 
 app.use(`${apiPrefix}/auth`, authRoutes);
+app.use(`${apiPrefix}/categories`, categoryRoutes);
 app.use(`${apiPrefix}/products`, productRoutes);
 app.use(`${apiPrefix}/users`, userRoutes);
 app.use(`${apiPrefix}/cart`, cartRoutes);
