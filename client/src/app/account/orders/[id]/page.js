@@ -46,8 +46,9 @@ export default function OrderDetailPage() {
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelSuccess, setCancelSuccess] = useState(false);
 
-  // Review state
-  const [reviewEligibility, setReviewEligibility] = useState({}); // { productId: canReview }
+  // Review state - stores { canReview: boolean, reason?: string } per productId
+  const [reviewEligibility, setReviewEligibility] = useState({});
+  const [eligibilityLoading, setEligibilityLoading] = useState(true);
   const [reviewingProduct, setReviewingProduct] = useState(null);
   const [reviewedProducts, setReviewedProducts] = useState(new Set());
 
@@ -91,28 +92,41 @@ export default function OrderDetailPage() {
   // Check review eligibility for each product when order is delivered
   useEffect(() => {
     const checkReviewEligibility = async () => {
-      if (!order || order.status !== "delivered" || !order.items) return;
+      if (!order || order.status !== "delivered" || !order.items) {
+        setEligibilityLoading(false);
+        return;
+      }
 
+      setEligibilityLoading(true);
       const eligibilityPromises = order.items.map(async (item) => {
         const productId = item.product?._id;
-        if (!productId) return { productId: null, canReview: false };
+        if (!productId) return { productId: null, data: null };
 
         try {
           const response = await reviewService.checkEligibility(productId);
-          return { productId, canReview: response.canReview === true };
+          // Store the full response including reason
+          return { 
+            productId, 
+            data: { 
+              canReview: response.canReview === true, 
+              reason: response.reason 
+            } 
+          };
         } catch (error) {
-          return { productId, canReview: false };
+          // On error, allow review (don't block user)
+          return { productId, data: { canReview: true, reason: null } };
         }
       });
 
       const results = await Promise.all(eligibilityPromises);
       const eligibilityMap = {};
-      results.forEach(({ productId, canReview }) => {
-        if (productId) {
-          eligibilityMap[productId] = canReview;
+      results.forEach(({ productId, data }) => {
+        if (productId && data) {
+          eligibilityMap[productId] = data;
         }
       });
       setReviewEligibility(eligibilityMap);
+      setEligibilityLoading(false);
     };
 
     checkReviewEligibility();
@@ -120,7 +134,10 @@ export default function OrderDetailPage() {
 
   const handleReviewSuccess = (productId) => {
     setReviewedProducts((prev) => new Set([...prev, productId]));
-    setReviewEligibility((prev) => ({ ...prev, [productId]: false }));
+    setReviewEligibility((prev) => ({ 
+      ...prev, 
+      [productId]: { canReview: false, reason: "already_reviewed" } 
+    }));
     setReviewingProduct(null);
   };
 
@@ -311,7 +328,12 @@ export default function OrderDetailPage() {
                               <CheckCircle size={16} />
                               <span>Review submitted</span>
                             </div>
-                          ) : reviewEligibility[item.product._id] ? (
+                          ) : eligibilityLoading ? (
+                            <div className="flex items-center gap-2 text-gray-400 text-sm">
+                              <Loader size={16} className="animate-spin" />
+                              <span>Checking...</span>
+                            </div>
+                          ) : reviewEligibility[item.product._id]?.canReview ? (
                             <button
                               onClick={() => setReviewingProduct(item.product)}
                               className="flex items-center gap-2 px-4 py-2 bg-yellow-300 text-gray-900 font-medium text-sm rounded hover:bg-yellow-400 transition-colors"
@@ -319,7 +341,7 @@ export default function OrderDetailPage() {
                               <Star size={16} />
                               Write a Review
                             </button>
-                          ) : reviewEligibility[item.product._id] === false ? (
+                          ) : reviewEligibility[item.product._id]?.reason === "already_reviewed" ? (
                             <div className="flex items-center gap-2 text-gray-500 text-sm">
                               <CheckCircle size={16} />
                               <span>Already reviewed</span>
