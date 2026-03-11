@@ -80,7 +80,9 @@ export default function ProductPage() {
       }
       try {
         const response = await reviewService.checkEligibility(id);
-        setCanReview(response.canReview === true);
+        // Response is wrapped in { success, message, data: { canReview, reason } }
+        const eligibilityData = response.data || response;
+        setCanReview(eligibilityData.canReview === true);
       } catch (error) {
         console.error("Failed to check review eligibility:", error);
         setCanReview(false);

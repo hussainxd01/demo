@@ -104,15 +104,17 @@ export default function OrderDetailPage() {
 
         try {
           const response = await reviewService.checkEligibility(productId);
-          // Store the full response including reason
+          // Response is wrapped in { success, message, data: { canReview, reason } }
+          const eligibilityData = response.data || response;
           return { 
             productId, 
             data: { 
-              canReview: response.canReview === true, 
-              reason: response.reason 
+              canReview: eligibilityData.canReview === true, 
+              reason: eligibilityData.reason 
             } 
           };
         } catch (error) {
+          console.log("[v0] Error checking eligibility for product:", productId, error);
           // On error, allow review (don't block user)
           return { productId, data: { canReview: true, reason: null } };
         }
