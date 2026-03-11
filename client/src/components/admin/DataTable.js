@@ -64,7 +64,7 @@ export default function DataTable({
                     <td key={`actions-${row._id}`} className="px-6 py-4 text-sm flex gap-2">
                       {onEdit && (
                         <button
-                          onClick={() => onEdit(row)}
+                          onClick={() => onEdit(row._id)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
                         >
                           <Edit2 className="w-4 h-4" />
