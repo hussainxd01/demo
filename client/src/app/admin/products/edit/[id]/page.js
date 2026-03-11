@@ -15,6 +15,14 @@ function splitList(value) {
     .filter(Boolean);
 }
 
+// Helper function to normalize image URL from various formats
+function normalizeImageUrl(image) {
+  if (!image) return '';
+  if (typeof image === 'string') return image;
+  if (typeof image === 'object' && image.url) return image.url;
+  return String(image);
+}
+
 export default function EditProductPage({ params }) {
   const router = useRouter();
   const { id } = useParams();
@@ -168,7 +176,7 @@ export default function EditProductPage({ params }) {
 
     // Normalize existing images for proper counting
     const keptExisting = existingImages.filter((img) => {
-      const imgUrl = typeof img === 'string' ? img : (img.url || img);
+      const imgUrl = normalizeImageUrl(img);
       return !imagesToRemove.includes(imgUrl);
     }).length;
 
@@ -203,7 +211,7 @@ export default function EditProductPage({ params }) {
 
   const removeExistingImage = (image) => {
     // Normalize: extract URL from image object if needed
-    const imageUrl = typeof image === 'string' ? image : (image.url || image);
+    const imageUrl = normalizeImageUrl(image);
     
     // Check if already marked for removal - if so, undo the removal
     if (imagesToRemove.includes(imageUrl)) {
@@ -239,7 +247,7 @@ export default function EditProductPage({ params }) {
 
     // Check total images - properly normalize existing images
     const keptExisting = existingImages.filter((img) => {
-      const imgUrl = typeof img === 'string' ? img : (img.url || img);
+      const imgUrl = normalizeImageUrl(img);
       return !imagesToRemove.includes(imgUrl);
     }).length;
     const totalImages = keptExisting + images.length;
@@ -309,7 +317,7 @@ export default function EditProductPage({ params }) {
 
     // Add only the existing images that are being kept (not removed)
     const keptImages = existingImages.filter((img) => {
-      const imgUrl = typeof img === 'string' ? img : (img.url || img);
+      const imgUrl = normalizeImageUrl(img);
       return !imagesToRemove.includes(imgUrl);
     });
 
@@ -556,7 +564,7 @@ export default function EditProductPage({ params }) {
                       <p className="text-gray-600">Existing</p>
                       <p className="font-semibold text-black">
                         {existingImages.filter((img) => {
-                          const imgUrl = typeof img === 'string' ? img : (img.url || img);
+                          const imgUrl = normalizeImageUrl(img);
                           return !imagesToRemove.includes(imgUrl);
                         }).length}
                       </p>
@@ -608,13 +616,13 @@ export default function EditProductPage({ params }) {
                     <div className="mt-5">
                       <p className="text-xs font-semibold text-gray-700 mb-3">
                         Current Images ({existingImages.filter((img) => {
-                          const imgUrl = typeof img === 'string' ? img : (img.url || img);
+                          const imgUrl = normalizeImageUrl(img);
                           return !imagesToRemove.includes(imgUrl);
                         }).length} kept)
                       </p>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         {existingImages.map((src, idx) => {
-                          const imageUrl = typeof src === "string" ? src : src.url || src;
+                          const imageUrl = normalizeImageUrl(src);
                           const isRemoved = imagesToRemove.includes(imageUrl);
                           return (
                             <div
@@ -834,124 +842,124 @@ export default function EditProductPage({ params }) {
             </button>
             
            {expandedSections.shipping && (
-  <div className="mt-4">
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-black mb-2">
-            Shipping Weight (kg)
-          </label>
-          <input
-            name="shippingWeight"
-            value={form.shippingWeight}
-            onChange={handleChange}
-            inputMode="decimal"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-            placeholder="e.g. 0.25"
-          />
-        </div>
+            <div className="mt-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-2">
+                      Shipping Weight (kg)
+                    </label>
+                    <input
+                      name="shippingWeight"
+                      value={form.shippingWeight}
+                      onChange={handleChange}
+                      inputMode="decimal"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                      placeholder="e.g. 0.25"
+                    />
+                  </div>
 
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <label className="block text-sm font-medium text-black mb-2">
-              Length
-            </label>
-            <input
-              name="shippingLength"
-              value={form.shippingLength}
-              onChange={handleChange}
-              inputMode="decimal"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-              placeholder="cm"
-            />
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-black mb-2">
+                        Length
+                      </label>
+                      <input
+                        name="shippingLength"
+                        value={form.shippingLength}
+                        onChange={handleChange}
+                        inputMode="decimal"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                        placeholder="cm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-black mb-2">
+                        Width
+                      </label>
+                      <input
+                        name="shippingWidth"
+                        value={form.shippingWidth}
+                        onChange={handleChange}
+                        inputMode="decimal"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                        placeholder="cm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-black mb-2">
+                        Height
+                      </label>
+                      <input
+                        name="shippingHeight"
+                        value={form.shippingHeight}
+                        onChange={handleChange}
+                        inputMode="decimal"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                        placeholder="cm"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-2">
+                      Estimated Delivery Days
+                    </label>
+                    <input
+                      name="shippingEstimatedDays"
+                      value={form.shippingEstimatedDays}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                      placeholder="e.g. 2-4 business days"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-2">
+                      Shipping Info
+                    </label>
+                    <textarea
+                      name="shippingInfo"
+                      value={form.shippingInfo}
+                      onChange={handleChange}
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                      placeholder="Additional shipping info..."
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-black mb-2">
-              Width
-            </label>
-            <input
-              name="shippingWidth"
-              value={form.shippingWidth}
-              onChange={handleChange}
-              inputMode="decimal"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-              placeholder="cm"
-            />
+          <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
+            <Link
+              href="/admin/products"
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-800 hover:bg-gray-50 transition-colors text-sm font-medium"
+            >
+              Cancel
+            </Link>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-5 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium disabled:opacity-50 inline-flex items-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader className="w-4 h-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Update Product"
+              )}
+            </button>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-black mb-2">
-              Height
-            </label>
-            <input
-              name="shippingHeight"
-              value={form.shippingHeight}
-              onChange={handleChange}
-              inputMode="decimal"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-              placeholder="cm"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-black mb-2">
-            Estimated Delivery Days
-          </label>
-          <input
-            name="shippingEstimatedDays"
-            value={form.shippingEstimatedDays}
-            onChange={handleChange}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-            placeholder="e.g. 2-4 business days"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-black mb-2">
-            Shipping Info
-          </label>
-          <textarea
-            name="shippingInfo"
-            value={form.shippingInfo}
-            onChange={handleChange}
-            rows={4}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-            placeholder="Additional shipping info..."
-          />
-        </div>
+        </form>
       </div>
     </div>
-  </div>
-)}<
-
-<div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
-  <Link
-    href="/admin/products"
-    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-800 hover:bg-gray-50 transition-colors text-sm font-medium"
-  >
-    Cancel
-  </Link>
-
-  <button
-    type="submit"
-    disabled={isSubmitting}
-    className="px-5 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium disabled:opacity-50 inline-flex items-center gap-2"
-  >
-    {isSubmitting ? (
-      <>
-        <Loader className="w-4 h-4 animate-spin" />
-        Updating...
-      </>
-    ) : (
-      "Update Product"
-    )}
-  </button>
-</div>
-</div>
-</form>
-</div>
-</div>
