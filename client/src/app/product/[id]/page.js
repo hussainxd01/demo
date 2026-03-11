@@ -3,11 +3,16 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Heart, Share2, Truck, Zap } from "lucide-react";
+import { Heart, Share2, Truck, Zap, Loader, Star } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 import { getProductById } from "@/lib/api";
 import ExpandableSection from "@/components/common/ExpandableSection";
 import { CATEGORIES } from "@/lib/products";
+import reviewService from "@/lib/services/reviewService";
+import ReviewCard from "@/components/reviews/ReviewCard";
+import ReviewSummary from "@/components/reviews/ReviewSummary";
+import ReviewModal from "@/components/reviews/ReviewModal";
+import { useAuth } from "@/context/AuthContext";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -17,7 +22,19 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Review state
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsPagination, setReviewsPagination] = useState({
+    total: 0,
+    page: 1,
+    pages: 1,
+  });
+  const [canReview, setCanReview] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+
   const { addToCart, openCart, toggleFavorite, favorites } = useShop();
+  const { user } = useAuth();
   const productId = product?._id;
   const isFavorited = productId && favorites.includes(productId);
 
@@ -38,6 +55,75 @@ export default function ProductPage() {
       loadProduct();
     }
   }, [id]);
+
+  // Load reviews
+  useEffect(() => {
+    const loadReviews = async () => {
+      if (!id) return;
+      setReviewsLoading(true);
+      try {
+        const response = await reviewService.getProductReviews(id, 1, 10);
+        setReviews(response.data || []);
+        setReviewsPagination(
+          response.pagination || { total: 0, page: 1, pages: 1 },
+        );
+      } catch (error) {
+        console.error("Failed to load reviews:", error);
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
+    loadReviews();
+  }, [id]);
+
+  // Check review eligibility when user is logged in
+  useEffect(() => {
+    const checkEligibility = async () => {
+      if (!id || !user) {
+        setCanReview(false);
+        return;
+      }
+      try {
+        const response = await reviewService.checkEligibility(id);
+        // Response is wrapped in { success, message, data: { canReview, reason } }
+        const eligibilityData = response.data || response;
+        setCanReview(eligibilityData.canReview === true);
+      } catch (error) {
+        console.error("Failed to check review eligibility:", error);
+        setCanReview(false);
+      }
+    };
+
+    checkEligibility();
+  }, [id, user]);
+
+  const handleReviewSuccess = async () => {
+    // Reload reviews after successful submission
+    try {
+      const response = await reviewService.getProductReviews(id, 1, 10);
+      setReviews(response.data || []);
+      setReviewsPagination(
+        response.pagination || { total: 0, page: 1, pages: 1 },
+      );
+      setCanReview(false); // User can no longer review after submitting
+    } catch (error) {
+      console.error("Failed to reload reviews:", error);
+    }
+  };
+
+  const loadMoreReviews = async () => {
+    if (reviewsPagination.page >= reviewsPagination.pages) return;
+
+    try {
+      const nextPage = reviewsPagination.page + 1;
+      const response = await reviewService.getProductReviews(id, nextPage, 10);
+      setReviews((prev) => [...prev, ...(response.data || [])]);
+      setReviewsPagination(response.pagination || reviewsPagination);
+    } catch (error) {
+      console.error("Failed to load more reviews:", error);
+    }
+  };
 
   const handleAddToCart = () => {
     if (product) {
@@ -288,7 +374,85 @@ export default function ProductPage() {
             </ExpandableSection>
           </div>
         </div>
+
+        {/* Reviews Section */}
+        <div className="mt-16 md:mt-20 border-t border-gray-200 pt-12">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Customer Reviews
+            </h2>
+            {canReview && (
+              <button
+                onClick={() => setShowReviewModal(true)}
+                className="px-6 py-2 bg-yellow-300 text-gray-900 font-semibold rounded hover:bg-yellow-400 transition-colors flex items-center gap-2"
+              >
+                <Star size={18} />
+                Write a Review
+              </button>
+            )}
+          </div>
+
+          {reviewsLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader className="w-6 h-6 animate-spin text-gray-400" />
+            </div>
+          ) : reviews.length > 0 ? (
+            <div className="space-y-8">
+              {/* Summary */}
+              <ReviewSummary
+                reviews={reviews}
+                averageRating={product?.rating || 0}
+                totalReviews={reviewsPagination.total}
+              />
+
+              {/* Reviews List */}
+              <div className="space-y-6">
+                {reviews.map((review) => (
+                  <ReviewCard key={review._id} review={review} />
+                ))}
+              </div>
+
+              {/* Load More */}
+              {reviewsPagination.page < reviewsPagination.pages && (
+                <div className="text-center pt-4">
+                  <button
+                    onClick={loadMoreReviews}
+                    className="px-6 py-2 border border-gray-300 rounded text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                  >
+                    Load More Reviews
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-gray-50 rounded-lg">
+              <p className="text-gray-600 mb-2">No reviews yet</p>
+              <p className="text-sm text-gray-500">
+                {canReview
+                  ? "Be the first to review this product!"
+                  : "Purchase this product to leave a review."}
+              </p>
+              {canReview && (
+                <button
+                  onClick={() => setShowReviewModal(true)}
+                  className="mt-4 px-6 py-2 bg-yellow-300 text-gray-900 font-semibold rounded hover:bg-yellow-400 transition-colors"
+                >
+                  Write a Review
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Review Modal */}
+      {showReviewModal && product && (
+        <ReviewModal
+          product={product}
+          onClose={() => setShowReviewModal(false)}
+          onSuccess={handleReviewSuccess}
+        />
+      )}
     </div>
   );
 }

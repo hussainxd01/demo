@@ -7,6 +7,10 @@ const reviewService = {
     );
   },
 
+  async checkEligibility(productId) {
+    return apiClient.get(`/reviews/eligibility/${productId}`);
+  },
+
   async createReview(productId, reviewData) {
     return apiClient.post(`/reviews/product/${productId}`, reviewData);
   },

@@ -13,6 +13,17 @@ const reviewController = require("../controllers/review.controller");
 router.get("/product/:productId", reviewController.getProductReviews);
 
 /**
+ * @route   GET /api/v1/reviews/eligibility/:productId
+ * @desc    Check if user can review a product (purchased + delivered + not already reviewed)
+ * @access  Private
+ */
+router.get(
+  "/eligibility/:productId",
+  protect,
+  reviewController.checkReviewEligibility,
+);
+
+/**
  * @route   POST /api/v1/reviews/product/:productId
  * @desc    Create review for a product
  * @access  Private

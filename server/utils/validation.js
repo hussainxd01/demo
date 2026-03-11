@@ -77,6 +77,8 @@ const productValidation = {
     }),
     tags: Joi.array().items(Joi.string()),
     isActive: Joi.boolean(),
+    existingImages: Joi.string(), // JSON stringified array of existing images to keep
+    imagesToRemove: Joi.string(), // JSON stringified array of image URLs to remove
   }).unknown(false),
 };
 
