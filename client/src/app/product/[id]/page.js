@@ -59,6 +59,9 @@ export default function ProductPage() {
       setReviewsLoading(true);
       try {
         const response = await reviewService.getProductReviews(id, 1, 10);
+        console.log("[v0] Reviews API response:", response);
+        console.log("[v0] response.data:", response.data);
+        console.log("[v0] Is array:", Array.isArray(response.data));
         setReviews(response.data || []);
         setReviewsPagination(response.pagination || { total: 0, page: 1, pages: 1 });
       } catch (error) {
