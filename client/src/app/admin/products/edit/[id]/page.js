@@ -307,12 +307,17 @@ export default function EditProductPage({ params }) {
       fd.append("tags", JSON.stringify(tags));
     }
 
-    // Add existing images to keep
-    if (existingImages.length > 0) {
-      fd.append("existingImages", JSON.stringify(existingImages));
+    // Add only the existing images that are being kept (not removed)
+    const keptImages = existingImages.filter((img) => {
+      const imgUrl = typeof img === 'string' ? img : (img.url || img);
+      return !imagesToRemove.includes(imgUrl);
+    });
+
+    if (keptImages.length > 0) {
+      fd.append("existingImages", JSON.stringify(keptImages));
     }
 
-    // Add images to remove
+    // Add images to remove (as URLs only)
     if (imagesToRemove.length > 0) {
       fd.append("imagesToRemove", JSON.stringify(imagesToRemove));
     }

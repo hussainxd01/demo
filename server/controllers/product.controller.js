@@ -143,14 +143,16 @@ const updateProduct = async (req, res, next) => {
     // Build the final images array
     let updatedImages = [];
 
-    // Keep existing images that weren't removed
+    // The frontend sends only the images that should be kept in existingImages
+    // So we directly use those
     if (existingImages && existingImages.length > 0) {
-      updatedImages = product.images.filter((img) => {
-        // Check if this image should be kept
-        return existingImages.some((existing) => {
-          const existingUrl = typeof existing === 'string' ? existing : (existing?.url || existing);
-          return img.url === existingUrl;
-        });
+      updatedImages = existingImages.map((existing) => {
+        // Handle both string URLs and objects with url property
+        if (typeof existing === 'string') {
+          // If it's a string, find the full object from current product.images
+          return product.images.find((img) => img.url === existing) || { url: existing };
+        }
+        return existing;
       });
     }
 
@@ -166,13 +168,8 @@ const updateProduct = async (req, res, next) => {
       updatedImages = [...updatedImages, ...newImages];
     }
 
-    // Update images only if there are images to keep or new images to add
-    if (updatedImages.length > 0) {
-      req.body.images = updatedImages;
-    } else if (imagesToRemove.length > 0) {
-      // If all images were removed, set images to empty array
-      req.body.images = [];
-    }
+    // Always update images array (could be empty if all removed)
+    req.body.images = updatedImages;
 
     product = await Product.findByIdAndUpdate(id, req.body, {
       new: true,
