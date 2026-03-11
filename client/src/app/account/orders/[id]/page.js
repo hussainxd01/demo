@@ -40,6 +40,8 @@ export default function OrderDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isNewOrder, setIsNewOrder] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [cancelSuccess, setCancelSuccess] = useState(false);
 
   useEffect(() => {
     // Check if this is a fresh order from checkout
@@ -77,6 +79,25 @@ export default function OrderDetailPage() {
       loadOrder();
     }
   }, [orderId, searchParams]);
+
+  const handleCancelOrder = async () => {
+    if (!window.confirm("Are you sure you want to cancel this order?")) {
+      return;
+    }
+
+    setIsCancelling(true);
+    try {
+      const response = await orderService.cancelOrder(orderId);
+      setOrder(response);
+      setCancelSuccess(true);
+      setError("");
+    } catch (err) {
+      setError(err.message || "Failed to cancel order. Please try again.");
+      console.error("Error cancelling order:", err);
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -148,6 +169,21 @@ export default function OrderDetailPage() {
             </h2>
             <p className="text-green-800 text-sm">
               Thank you for your order. We'll process it shortly.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Cancellation Success Message */}
+      {cancelSuccess && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
+          <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <h2 className="font-semibold text-green-900">
+              Order Cancelled Successfully
+            </h2>
+            <p className="text-green-800 text-sm">
+              Your order has been cancelled and product stock has been restored.
             </p>
           </div>
         </div>
@@ -330,23 +366,17 @@ export default function OrderDetailPage() {
               </div>
             )}
 
-            {order.status !== "cancelled" && order.status !== "delivered" && (
-              <button
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      "Are you sure you want to cancel this order?",
-                    )
-                  ) {
-                    // Handle cancellation
-                    console.log("Cancel order:", orderId);
-                  }
-                }}
-                className="w-full px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors font-medium text-sm"
-              >
-                Cancel Order
-              </button>
-            )}
+            {order.status !== "cancelled" &&
+              order.status !== "delivered" &&
+              order.status !== "shipped" && (
+                <button
+                  onClick={handleCancelOrder}
+                  disabled={isCancelling}
+                  className="w-full px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCancelling ? "Cancelling..." : "Cancel Order"}
+                </button>
+              )}
 
             <Link
               href="/account/orders"

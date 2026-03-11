@@ -36,8 +36,8 @@ export default function ProductsAdminPage() {
     }
   };
 
-  const handleOpenEditPage = (product) => {
-    router.push(`/admin/products/edit/${product._id}`);
+  const handleOpenEditPage = (productId) => {
+    router.push(`/admin/products/edit/${productId}`);
   };
 
   const handleDelete = async (productId) => {

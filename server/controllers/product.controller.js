@@ -102,23 +102,64 @@ const updateProduct = async (req, res, next) => {
       throw new AppError("Product not found", 404);
     }
 
-    // Handle image updates
-    if (req.files && req.files.length > 0) {
-      // Delete old images from Cloudinary
-      if (product.images && product.images.length > 0) {
-        for (const image of product.images) {
-          await deleteImageFromCloudinary(image.publicId);
+    // Extract special image fields from request body
+    const existingImages = req.body.existingImages
+      ? JSON.parse(req.body.existingImages)
+      : [];
+    const imagesToRemove = req.body.imagesToRemove
+      ? JSON.parse(req.body.imagesToRemove)
+      : [];
+
+    // Remove these special fields from the update body
+    delete req.body.existingImages;
+    delete req.body.imagesToRemove;
+
+    // Handle image removal from Cloudinary
+    if (imagesToRemove && imagesToRemove.length > 0) {
+      for (const imageUrl of imagesToRemove) {
+        // Extract publicId from the URL or get it from the existing images
+        const imageToDelete = product.images.find(
+          (img) => img.url === imageUrl,
+        );
+        if (imageToDelete) {
+          await deleteImageFromCloudinary(imageToDelete.publicId);
         }
       }
+    }
 
-      // Add new images
-      req.body.images = req.files.map((file) => {
+    // Build the final images array
+    let updatedImages = [];
+
+    // Keep existing images that weren't removed
+    if (existingImages && existingImages.length > 0) {
+      updatedImages = product.images.filter((img) =>
+        existingImages.some((existing) =>
+          typeof existing === "string"
+            ? existing === img.url
+            : existing === img.url || existing === img,
+        ),
+      );
+    }
+
+    // Add new uploaded images
+    if (req.files && req.files.length > 0) {
+      const newImages = req.files.map((file) => {
         const url = file.secure_url || file.path;
         const publicId =
           file.public_id || file.filename || extractPublicIdFromUrl(url);
 
         return { url, publicId };
       });
+      updatedImages = [...updatedImages, ...newImages];
+    }
+
+    // Update images if there are any changes
+    if (
+      updatedImages.length > 0 ||
+      existingImages.length > 0 ||
+      imagesToRemove.length > 0
+    ) {
+      req.body.images = updatedImages;
     }
 
     product = await Product.findByIdAndUpdate(id, req.body, {
