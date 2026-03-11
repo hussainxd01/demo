@@ -934,10 +934,12 @@ export default function EditProductPage({ params }) {
                 </div>
               </div>
             </div>
-          )}
+            )}
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
+        </div>
+
+        <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
             <Link
               href="/admin/products"
               className="px-4 py-2 border border-gray-300 rounded-lg text-gray-800 hover:bg-gray-50 transition-colors text-sm font-medium"
@@ -961,5 +963,7 @@ export default function EditProductPage({ params }) {
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
+  );
