@@ -123,11 +123,13 @@ export default function EditProductPage({ params }) {
 
   useEffect(() => {
     return () => {
-      [...previews, ...existingImages].forEach((url) => {
-        if (url.startsWith("blob:")) URL.revokeObjectURL(url);
+      previews.forEach((url) => {
+        if (typeof url === "string" && url.startsWith("blob:")) {
+          URL.revokeObjectURL(url);
+        }
       });
     };
-  }, [previews, existingImages]);
+  }, [previews]);
 
   const tags = useMemo(() => splitList(form.tagsText), [form.tagsText]);
 
@@ -552,26 +554,29 @@ export default function EditProductPage({ params }) {
                         Existing images
                       </p>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {existingImages.map((src) => (
-                          <div
-                            key={src}
-                            className="relative border border-gray-200 rounded-lg overflow-hidden bg-white"
-                          >
-                            <img
-                              src={src}
-                              alt="Existing"
-                              className="w-full h-28 object-cover"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeExistingImage(src)}
-                              className="absolute top-2 right-2 p-2 rounded-md bg-white/90 hover:bg-white border border-gray-200"
-                              title="Remove"
+                        {existingImages.map((src, idx) => {
+                          const imageUrl = typeof src === "string" ? src : src.url || src;
+                          return (
+                            <div
+                              key={`existing-${idx}`}
+                              className="relative border border-gray-200 rounded-lg overflow-hidden bg-white"
                             >
-                              <Trash2 className="w-4 h-4 text-gray-700" />
-                            </button>
-                          </div>
-                        ))}
+                              <img
+                                src={imageUrl}
+                                alt="Existing"
+                                className="w-full h-28 object-cover"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeExistingImage(src)}
+                                className="absolute top-2 right-2 p-2 rounded-md bg-white/90 hover:bg-white border border-gray-200"
+                                title="Remove"
+                              >
+                                <Trash2 className="w-4 h-4 text-gray-700" />
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -583,7 +588,7 @@ export default function EditProductPage({ params }) {
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         {previews.map((src, idx) => (
                           <div
-                            key={src}
+                            key={`preview-${idx}`}
                             className="relative border border-blue-200 rounded-lg overflow-hidden bg-blue-50"
                           >
                             <img
