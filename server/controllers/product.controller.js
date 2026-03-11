@@ -103,8 +103,24 @@ const updateProduct = async (req, res, next) => {
     }
 
     // Extract special image fields from request body
-    const existingImages = req.body.existingImages ? JSON.parse(req.body.existingImages) : [];
-    const imagesToRemove = req.body.imagesToRemove ? JSON.parse(req.body.imagesToRemove) : [];
+    let existingImages = [];
+    let imagesToRemove = [];
+
+    try {
+      if (req.body.existingImages) {
+        existingImages = JSON.parse(req.body.existingImages);
+      }
+    } catch (e) {
+      console.error("Failed to parse existingImages:", e);
+    }
+
+    try {
+      if (req.body.imagesToRemove) {
+        imagesToRemove = JSON.parse(req.body.imagesToRemove);
+      }
+    } catch (e) {
+      console.error("Failed to parse imagesToRemove:", e);
+    }
 
     // Remove these special fields from the update body
     delete req.body.existingImages;
@@ -113,9 +129,12 @@ const updateProduct = async (req, res, next) => {
     // Handle image removal from Cloudinary
     if (imagesToRemove && imagesToRemove.length > 0) {
       for (const imageUrl of imagesToRemove) {
-        // Extract publicId from the URL or get it from the existing images
-        const imageToDelete = product.images.find((img) => img.url === imageUrl);
-        if (imageToDelete) {
+        // Ensure imageUrl is a string
+        const urlToDelete = typeof imageUrl === 'string' ? imageUrl : imageUrl?.url || imageUrl;
+        
+        // Find and delete from Cloudinary
+        const imageToDelete = product.images.find((img) => img.url === urlToDelete);
+        if (imageToDelete && imageToDelete.publicId) {
           await deleteImageFromCloudinary(imageToDelete.publicId);
         }
       }
@@ -126,11 +145,13 @@ const updateProduct = async (req, res, next) => {
 
     // Keep existing images that weren't removed
     if (existingImages && existingImages.length > 0) {
-      updatedImages = product.images.filter((img) =>
-        existingImages.some((existing) => 
-          (typeof existing === 'string' ? existing === img.url : existing === img.url || existing === img)
-        )
-      );
+      updatedImages = product.images.filter((img) => {
+        // Check if this image should be kept
+        return existingImages.some((existing) => {
+          const existingUrl = typeof existing === 'string' ? existing : (existing?.url || existing);
+          return img.url === existingUrl;
+        });
+      });
     }
 
     // Add new uploaded images
@@ -145,9 +166,12 @@ const updateProduct = async (req, res, next) => {
       updatedImages = [...updatedImages, ...newImages];
     }
 
-    // Update images if there are any changes
-    if (updatedImages.length > 0 || existingImages.length > 0 || imagesToRemove.length > 0) {
+    // Update images only if there are images to keep or new images to add
+    if (updatedImages.length > 0) {
       req.body.images = updatedImages;
+    } else if (imagesToRemove.length > 0) {
+      // If all images were removed, set images to empty array
+      req.body.images = [];
     }
 
     product = await Product.findByIdAndUpdate(id, req.body, {

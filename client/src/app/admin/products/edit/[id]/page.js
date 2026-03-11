@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader, Trash2, Upload, X } from "lucide-react";
+import { ArrowLeft, Loader, Trash2, Upload, X, ChevronDown } from "lucide-react";
 import productService from "@/lib/services/productService";
 import categoryService from "@/lib/services/categoryService";
 
@@ -58,6 +58,18 @@ export default function EditProductPage({ params }) {
   const [errors, setErrors] = useState({});
   const [generalError, setGeneralError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({
+    specifications: false,
+    instructions: false,
+    shipping: false,
+  });
+
+  const toggleSection = (section) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
 
   // Fetch product and categories on mount
   useEffect(() => {
@@ -154,15 +166,18 @@ export default function EditProductPage({ params }) {
     const fileList = Array.from(e.target.files || []);
     if (fileList.length === 0) return;
 
-    const totalImages =
-      existingImages.filter((img) => !imagesToRemove.includes(img)).length +
-      images.length +
-      fileList.length;
+    // Normalize existing images for proper counting
+    const keptExisting = existingImages.filter((img) => {
+      const imgUrl = typeof img === 'string' ? img : (img.url || img);
+      return !imagesToRemove.includes(imgUrl);
+    }).length;
+
+    const totalImages = keptExisting + images.length + fileList.length;
 
     if (totalImages > 5) {
       setErrors((prev) => ({
         ...prev,
-        images: `Maximum 5 images allowed (you have ${existingImages.filter((img) => !imagesToRemove.includes(img)).length} existing + ${images.length} new)`,
+        images: `Maximum 5 images allowed (you have ${keptExisting} existing + ${images.length} new)`,
       }));
       return;
     }
@@ -186,9 +201,17 @@ export default function EditProductPage({ params }) {
     setPreviews(nextPreviews);
   };
 
-  const removeExistingImage = (imageUrl) => {
-    setImagesToRemove((prev) => [...prev, imageUrl]);
-    setExistingImages((prev) => prev.filter((img) => img !== imageUrl));
+  const removeExistingImage = (image) => {
+    // Normalize: extract URL from image object if needed
+    const imageUrl = typeof image === 'string' ? image : (image.url || image);
+    
+    // Check if already marked for removal - if so, undo the removal
+    if (imagesToRemove.includes(imageUrl)) {
+      setImagesToRemove((prev) => prev.filter((url) => url !== imageUrl));
+    } else {
+      // Mark for removal
+      setImagesToRemove((prev) => [...prev, imageUrl]);
+    }
   };
 
   const validate = () => {
@@ -214,8 +237,12 @@ export default function EditProductPage({ params }) {
 
     if (!form.sku.trim()) nextErrors.sku = "SKU is required";
 
-    // Check total images
-    const totalImages = existingImages.length + images.length;
+    // Check total images - properly normalize existing images
+    const keptExisting = existingImages.filter((img) => {
+      const imgUrl = typeof img === 'string' ? img : (img.url || img);
+      return !imagesToRemove.includes(imgUrl);
+    }).length;
+    const totalImages = keptExisting + images.length;
     if (totalImages === 0)
       nextErrors.images = "Please keep at least 1 image or add new ones";
 
@@ -516,6 +543,30 @@ export default function EditProductPage({ params }) {
                   Images<span className="text-red-500"> *</span>{" "}
                   <span className="text-xs text-gray-500">(max 5)</span>
                 </label>
+                
+                {/* Image Status Summary */}
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-600">Existing</p>
+                      <p className="font-semibold text-black">
+                        {existingImages.filter((img) => {
+                          const imgUrl = typeof img === 'string' ? img : (img.url || img);
+                          return !imagesToRemove.includes(imgUrl);
+                        }).length}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">New</p>
+                      <p className="font-semibold text-black">{images.length}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">To Remove</p>
+                      <p className="font-semibold text-red-600">{imagesToRemove.length}</p>
+                    </div>
+                  </div>
+                </div>
+
                 <div
                   className={`border-2 border-dashed rounded-lg p-6 ${
                     errors.images ? "border-red-400" : "border-gray-200"
@@ -550,29 +601,46 @@ export default function EditProductPage({ params }) {
                   {/* Existing Images */}
                   {existingImages.length > 0 && (
                     <div className="mt-5">
-                      <p className="text-xs text-gray-600 mb-3">
-                        Existing images
+                      <p className="text-xs font-semibold text-gray-700 mb-3">
+                        Current Images ({existingImages.filter((img) => {
+                          const imgUrl = typeof img === 'string' ? img : (img.url || img);
+                          return !imagesToRemove.includes(imgUrl);
+                        }).length} kept)
                       </p>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         {existingImages.map((src, idx) => {
                           const imageUrl = typeof src === "string" ? src : src.url || src;
+                          const isRemoved = imagesToRemove.includes(imageUrl);
                           return (
                             <div
                               key={`existing-${idx}`}
-                              className="relative border border-gray-200 rounded-lg overflow-hidden bg-white"
+                              className={`relative border rounded-lg overflow-hidden transition-opacity ${
+                                isRemoved 
+                                  ? "border-red-300 bg-red-50 opacity-50" 
+                                  : "border-gray-200 bg-white"
+                              }`}
                             >
                               <img
                                 src={imageUrl}
                                 alt="Existing"
                                 className="w-full h-28 object-cover"
                               />
+                              {isRemoved && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-red-500/20">
+                                  <span className="text-xs font-semibold text-red-700 bg-white px-2 py-1 rounded">Removed</span>
+                                </div>
+                              )}
                               <button
                                 type="button"
                                 onClick={() => removeExistingImage(src)}
-                                className="absolute top-2 right-2 p-2 rounded-md bg-white/90 hover:bg-white border border-gray-200"
-                                title="Remove"
+                                className={`absolute top-2 right-2 p-2 rounded-md transition-colors ${
+                                  isRemoved
+                                    ? "bg-red-500 hover:bg-red-600"
+                                    : "bg-white/90 hover:bg-white border border-gray-200"
+                                }`}
+                                title={isRemoved ? "Undo removal" : "Remove"}
                               >
-                                <Trash2 className="w-4 h-4 text-gray-700" />
+                                <Trash2 className={`w-4 h-4 ${isRemoved ? "text-white" : "text-gray-700"}`} />
                               </button>
                             </div>
                           );
@@ -638,9 +706,23 @@ export default function EditProductPage({ params }) {
           </div>
 
           <div className="border-t border-gray-200 pt-6">
-            <h2 className="text-lg font-semibold text-black mb-4">
-              Specifications (optional)
-            </h2>
+            <button
+              type="button"
+              onClick={() => toggleSection("specifications")}
+              className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <h2 className="text-lg font-semibold text-black">
+                Specifications (optional)
+              </h2>
+              <ChevronDown
+                className={`w-5 h-5 text-gray-600 transition-transform ${
+                  expandedSections.specifications ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            
+            {expandedSections.specifications && (
+            <div className="mt-4 space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
@@ -696,12 +778,28 @@ export default function EditProductPage({ params }) {
                 placeholder="e.g. Hyaluronic Acid, Niacinamide, ..."
               />
             </div>
+            </div>
+            )}
           </div>
 
           <div className="border-t border-gray-200 pt-6">
-            <h2 className="text-lg font-semibold text-black mb-4">
-              Instructions (optional)
-            </h2>
+            <button
+              type="button"
+              onClick={() => toggleSection("instructions")}
+              className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <h2 className="text-lg font-semibold text-black">
+                Instructions (optional)
+              </h2>
+              <ChevronDown
+                className={`w-5 h-5 text-gray-600 transition-transform ${
+                  expandedSections.instructions ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            
+            {expandedSections.instructions && (
+            <div className="mt-4">
             <textarea
               name="instructions"
               value={form.instructions}
@@ -710,12 +808,28 @@ export default function EditProductPage({ params }) {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
               placeholder="How to use the product..."
             />
+            </div>
+            )}
           </div>
 
           <div className="border-t border-gray-200 pt-6">
-            <h2 className="text-lg font-semibold text-black mb-4">
-              Shipping (optional)
-            </h2>
+            <button
+              type="button"
+              onClick={() => toggleSection("shipping")}
+              className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <h2 className="text-lg font-semibold text-black">
+                Shipping (optional)
+              </h2>
+              <ChevronDown
+                className={`w-5 h-5 text-gray-600 transition-transform ${
+                  expandedSections.shipping ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            
+            {expandedSections.shipping && (
+            <div className="mt-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
@@ -804,9 +918,10 @@ export default function EditProductPage({ params }) {
                 </div>
               </div>
             </div>
+            )}
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
             <Link
               href="/admin/products"
               className="px-4 py-2 border border-gray-300 rounded-lg text-gray-800 hover:bg-gray-50 transition-colors text-sm font-medium"
