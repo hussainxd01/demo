@@ -11,8 +11,11 @@ import {
   Clock,
   Truck,
   Package,
+  Star,
 } from "lucide-react";
 import orderService from "@/lib/services/orderService";
+import reviewService from "@/lib/services/reviewService";
+import ReviewModal from "@/components/reviews/ReviewModal";
 
 const statusIcons = {
   pending: Clock,
@@ -42,6 +45,11 @@ export default function OrderDetailPage() {
   const [isNewOrder, setIsNewOrder] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelSuccess, setCancelSuccess] = useState(false);
+
+  // Review state
+  const [reviewEligibility, setReviewEligibility] = useState({}); // { productId: canReview }
+  const [reviewingProduct, setReviewingProduct] = useState(null);
+  const [reviewedProducts, setReviewedProducts] = useState(new Set());
 
   useEffect(() => {
     // Check if this is a fresh order from checkout
@@ -79,6 +87,42 @@ export default function OrderDetailPage() {
       loadOrder();
     }
   }, [orderId, searchParams]);
+
+  // Check review eligibility for each product when order is delivered
+  useEffect(() => {
+    const checkReviewEligibility = async () => {
+      if (!order || order.status !== "delivered" || !order.items) return;
+
+      const eligibilityPromises = order.items.map(async (item) => {
+        const productId = item.product?._id;
+        if (!productId) return { productId: null, canReview: false };
+
+        try {
+          const response = await reviewService.checkEligibility(productId);
+          return { productId, canReview: response.canReview === true };
+        } catch (error) {
+          return { productId, canReview: false };
+        }
+      });
+
+      const results = await Promise.all(eligibilityPromises);
+      const eligibilityMap = {};
+      results.forEach(({ productId, canReview }) => {
+        if (productId) {
+          eligibilityMap[productId] = canReview;
+        }
+      });
+      setReviewEligibility(eligibilityMap);
+    };
+
+    checkReviewEligibility();
+  }, [order]);
+
+  const handleReviewSuccess = (productId) => {
+    setReviewedProducts((prev) => new Set([...prev, productId]));
+    setReviewEligibility((prev) => ({ ...prev, [productId]: false }));
+    setReviewingProduct(null);
+  };
 
   const handleCancelOrder = async () => {
     if (!window.confirm("Are you sure you want to cancel this order?")) {
@@ -259,6 +303,30 @@ export default function OrderDetailPage() {
                           Rs. {(item.price * item.quantity).toFixed(2)}
                         </p>
                       </div>
+                      {/* Review Button - only for delivered orders */}
+                      {order.status === "delivered" && item.product?._id && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          {reviewedProducts.has(item.product._id) ? (
+                            <div className="flex items-center gap-2 text-green-600 text-sm">
+                              <CheckCircle size={16} />
+                              <span>Review submitted</span>
+                            </div>
+                          ) : reviewEligibility[item.product._id] ? (
+                            <button
+                              onClick={() => setReviewingProduct(item.product)}
+                              className="flex items-center gap-2 px-4 py-2 bg-yellow-300 text-gray-900 font-medium text-sm rounded hover:bg-yellow-400 transition-colors"
+                            >
+                              <Star size={16} />
+                              Write a Review
+                            </button>
+                          ) : reviewEligibility[item.product._id] === false ? (
+                            <div className="flex items-center gap-2 text-gray-500 text-sm">
+                              <CheckCircle size={16} />
+                              <span>Already reviewed</span>
+                            </div>
+                          ) : null}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
@@ -387,6 +455,15 @@ export default function OrderDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Review Modal */}
+      {reviewingProduct && (
+        <ReviewModal
+          product={reviewingProduct}
+          onClose={() => setReviewingProduct(null)}
+          onSuccess={() => handleReviewSuccess(reviewingProduct._id)}
+        />
+      )}
     </div>
   );
 }

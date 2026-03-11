@@ -1,6 +1,7 @@
 const Review = require("../models/Review");
 const Product = require("../models/Product");
 const User = require("../models/User");
+const Order = require("../models/Order");
 const { AppError } = require("../middleware/errorHandler");
 const {
   sendSuccess,
@@ -9,6 +10,55 @@ const {
   extractPublicIdFromUrl,
 } = require("../utils/helpers");
 const { deleteImageFromCloudinary } = require("../config/cloudinary");
+
+// Check if user can review a product (purchased + delivered + not already reviewed)
+const checkReviewEligibility = async (req, res, next) => {
+  try {
+    const { productId } = req.params;
+
+    // Check if product exists
+    const product = await Product.findById(productId);
+    if (!product) {
+      throw new AppError("Product not found", 404);
+    }
+
+    // Check if user has already reviewed this product
+    const existingReview = await Review.findOne({
+      product: productId,
+      user: req.userId,
+    });
+
+    if (existingReview) {
+      return sendSuccess(res, 200, {
+        canReview: false,
+        reason: "already_reviewed",
+        review: existingReview,
+      });
+    }
+
+    // Check if user has a delivered order containing this product
+    const deliveredOrder = await Order.findOne({
+      user: req.userId,
+      status: "delivered",
+      "items.product": productId,
+    });
+
+    if (!deliveredOrder) {
+      return sendSuccess(res, 200, {
+        canReview: false,
+        reason: "not_purchased_or_not_delivered",
+      });
+    }
+
+    // User can review
+    sendSuccess(res, 200, {
+      canReview: true,
+      orderId: deliveredOrder._id,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 // Get reviews for a product
 const getProductReviews = async (req, res, next) => {
@@ -378,6 +428,7 @@ const deleteReviewAdmin = async (req, res, next) => {
 };
 
 module.exports = {
+  checkReviewEligibility,
   getProductReviews,
   createReview,
   updateReview,
