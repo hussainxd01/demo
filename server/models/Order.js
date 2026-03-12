@@ -70,13 +70,25 @@ const orderSchema = new mongoose.Schema(
 
     paymentMethod: {
       type: String,
-      enum: ["card", "paypal", "cod"],
+      enum: ["card", "paypal", "cod", "razorpay"],
       required: true,
     },
     paymentStatus: {
       type: String,
       enum: ["pending", "completed", "failed", "refunded"],
       default: "pending",
+    },
+
+    // Razorpay payment fields
+    razorpayOrderId: {
+      type: String,
+      index: true,
+    },
+    razorpayPaymentId: {
+      type: String,
+    },
+    razorpaySignature: {
+      type: String,
     },
 
     subtotal: {

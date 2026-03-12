@@ -3,10 +3,19 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Loader, AlertCircle, CheckCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  Loader,
+  AlertCircle,
+  CheckCircle,
+  CreditCard,
+  Banknote,
+  ShieldCheck,
+} from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 import { useAuth } from "@/context/AuthContext";
 import orderService from "@/lib/services/orderService";
+import paymentService from "@/lib/services/paymentService";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -26,10 +35,12 @@ export default function CheckoutPage() {
 
   const [orderData, setOrderData] = useState({
     shippingAddress: {},
-    paymentMethod: "cod", // Cash on Delivery
+    paymentMethod: "razorpay", // Default to online payment
     giftWrap: false,
     notes: "",
   });
+
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -97,20 +108,62 @@ export default function CheckoutPage() {
     setError("");
 
     try {
+      const shippingAddress = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        country: formData.country,
+        postalCode: formData.postalCode,
+      };
+
+      // Handle Razorpay payment
+      if (orderData.paymentMethod === "razorpay") {
+        setPaymentProcessing(true);
+
+        await paymentService.initiatePayment({
+          orderData: {
+            shippingAddress,
+            billingInfo: shippingAddress,
+            notes: orderData.notes || "",
+            giftWrap: orderData.giftWrap,
+          },
+          userInfo: {
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+          },
+          onSuccess: (result) => {
+            setPaymentProcessing(false);
+            setOrderSuccess(result);
+            clearCart();
+            setStep(4);
+
+            // Redirect to order detail page after 2 seconds
+            setTimeout(() => {
+              router.push(`/account/orders/${result._id}?new=true`);
+            }, 2000);
+          },
+          onFailure: (err) => {
+            setPaymentProcessing(false);
+            setError(err.message || "Payment failed. Please try again.");
+          },
+          onDismiss: () => {
+            setPaymentProcessing(false);
+            setError("Payment was cancelled. You can try again.");
+          },
+        });
+
+        setIsLoading(false);
+        return;
+      }
+
+      // Handle COD payment
       const orderPayload = {
-        shippingAddress: {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          country: formData.country,
-          postalCode: formData.postalCode,
-        },
-
+        shippingAddress,
         paymentMethod: orderData.paymentMethod,
-
         notes: orderData.notes || "",
       };
 
@@ -125,6 +178,7 @@ export default function CheckoutPage() {
         router.push(`/account/orders/${response._id}?new=true`);
       }, 2000);
     } catch (err) {
+      setPaymentProcessing(false);
       setError(err.message || "Failed to create order. Please try again.");
     } finally {
       setIsLoading(false);
@@ -380,8 +434,28 @@ export default function CheckoutPage() {
                       </span>
                     </div>
                     <div className="flex justify-between">
+                      <span className="text-gray-600">Payment:</span>
+                      <span
+                        className={`font-semibold capitalize ${
+                          orderSuccess.paymentStatus === "completed"
+                            ? "text-green-600"
+                            : "text-yellow-600"
+                        }`}
+                      >
+                        {orderSuccess.paymentStatus === "completed"
+                          ? "Paid"
+                          : "Pending"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
                       <span className="text-gray-600">Status:</span>
-                      <span className="font-semibold text-yellow-600 capitalize">
+                      <span
+                        className={`font-semibold capitalize ${
+                          orderSuccess.status === "confirmed"
+                            ? "text-green-600"
+                            : "text-yellow-600"
+                        }`}
+                      >
                         {orderSuccess.status || "Pending"}
                       </span>
                     </div>
@@ -417,19 +491,95 @@ export default function CheckoutPage() {
                     <label className="block text-sm font-medium text-gray-900 mb-3">
                       Payment Method
                     </label>
-                    <div className="space-y-2">
-                      <label className="flex items-center p-4 border-2 border-black rounded-lg cursor-pointer">
+                    <div className="space-y-3">
+                      {/* Razorpay - Online Payment */}
+                      <label
+                        className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          orderData.paymentMethod === "razorpay"
+                            ? "border-green-600 bg-green-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="razorpay"
+                          checked={orderData.paymentMethod === "razorpay"}
+                          onChange={(e) =>
+                            setOrderData((prev) => ({
+                              ...prev,
+                              paymentMethod: e.target.value,
+                            }))
+                          }
+                          className="sr-only"
+                        />
+                        <div
+                          className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
+                            orderData.paymentMethod === "razorpay"
+                              ? "border-green-600"
+                              : "border-gray-300"
+                          }`}
+                        >
+                          {orderData.paymentMethod === "razorpay" && (
+                            <div className="w-2.5 h-2.5 rounded-full bg-green-600" />
+                          )}
+                        </div>
+                        <CreditCard className="w-5 h-5 text-gray-600 mr-3" />
+                        <div className="flex-1">
+                          <span className="font-medium text-gray-900 block">
+                            Pay Online
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            Credit/Debit Card, UPI, Net Banking, Wallets
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 text-green-600">
+                          <ShieldCheck className="w-4 h-4" />
+                          <span className="text-xs font-medium">Secure</span>
+                        </div>
+                      </label>
+
+                      {/* Cash on Delivery */}
+                      <label
+                        className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          orderData.paymentMethod === "cod"
+                            ? "border-green-600 bg-green-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
                         <input
                           type="radio"
                           name="paymentMethod"
                           value="cod"
                           checked={orderData.paymentMethod === "cod"}
-                          onChange={handleChange}
-                          className="mr-3"
+                          onChange={(e) =>
+                            setOrderData((prev) => ({
+                              ...prev,
+                              paymentMethod: e.target.value,
+                            }))
+                          }
+                          className="sr-only"
                         />
-                        <span className="font-medium text-gray-900">
-                          Cash on Delivery (COD)
-                        </span>
+                        <div
+                          className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
+                            orderData.paymentMethod === "cod"
+                              ? "border-green-600"
+                              : "border-gray-300"
+                          }`}
+                        >
+                          {orderData.paymentMethod === "cod" && (
+                            <div className="w-2.5 h-2.5 rounded-full bg-green-600" />
+                          )}
+                        </div>
+                        <Banknote className="w-5 h-5 text-gray-600 mr-3" />
+                        <div className="flex-1">
+                          <span className="font-medium text-gray-900 block">
+                            Cash on Delivery
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            Pay when you receive your order
+                          </span>
+                        </div>
                       </label>
                     </div>
                   </div>
@@ -466,12 +616,31 @@ export default function CheckoutPage() {
 
                 <button
                   onClick={handleSubmitOrder}
-                  disabled={isLoading}
-                  className="w-full px-6 py-3 bg-amber-400 text-gray-900 rounded-lg hover:bg-amber-500 transition-colors font-bold disabled:opacity-50 flex items-center justify-center gap-2"
+                  disabled={isLoading || paymentProcessing}
+                  className={`w-full px-6 py-4 rounded-lg transition-colors font-bold disabled:opacity-50 flex items-center justify-center gap-2 ${
+                    orderData.paymentMethod === "razorpay"
+                      ? "bg-green-600 text-white hover:bg-green-700"
+                      : "bg-amber-400 text-gray-900 hover:bg-amber-500"
+                  }`}
                 >
-                  {isLoading && <Loader className="w-4 h-4 animate-spin" />}
-                  {isLoading ? "Creating Order..." : "Place Order"}
+                  {(isLoading || paymentProcessing) && (
+                    <Loader className="w-5 h-5 animate-spin" />
+                  )}
+                  {paymentProcessing
+                    ? "Processing Payment..."
+                    : isLoading
+                      ? "Creating Order..."
+                      : orderData.paymentMethod === "razorpay"
+                        ? `Pay Rs. ${(total + (orderData.giftWrap ? 100 : 0)).toFixed(2)}`
+                        : "Place Order (COD)"}
                 </button>
+
+                {orderData.paymentMethod === "razorpay" && (
+                  <div className="flex items-center justify-center gap-2 mt-3 text-sm text-gray-500">
+                    <ShieldCheck className="w-4 h-4 text-green-600" />
+                    <span>Secured by Razorpay</span>
+                  </div>
+                )}
               </div>
             )}
           </div>
