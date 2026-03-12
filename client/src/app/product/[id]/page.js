@@ -259,7 +259,7 @@ export default function ProductPage() {
                 </div>
 
                 <span className="text-sm text-gray-600">
-                  ({product.reviews} reviews)
+                  ({product.reviewCount || (Array.isArray(product.reviews) ? product.reviews.length : 0)} reviews)
                 </span>
               </div>
             )}
