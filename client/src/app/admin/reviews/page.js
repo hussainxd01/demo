@@ -26,8 +26,9 @@ export default function ReviewsAdminPage() {
         10,
         statusFilter ? { status: statusFilter } : {},
       );
-      setReviews(response.reviews || []);
-      setPagination({ total: response.total, limit: 10 });
+      // API returns { success, message, data: [...reviews], pagination: { total, page, limit, pages } }
+      setReviews(response.data || []);
+      setPagination({ total: response.pagination?.total || 0, limit: 10 });
     } catch (error) {
       console.error("Failed to load reviews", error);
     } finally {
@@ -80,13 +81,13 @@ export default function ReviewsAdminPage() {
       key: "userName",
       label: "Reviewer",
       width: "15%",
-      render: (_, row) => row.userId?.firstName || "Anonymous",
+      render: (_, row) => row.user?.name || row.user?.email || "Anonymous",
     },
     {
       key: "productName",
       label: "Product",
       width: "20%",
-      render: (_, row) => row.productId?.name || "Unknown",
+      render: (_, row) => row.product?.name || "Unknown",
     },
     {
       key: "rating",
@@ -176,10 +177,10 @@ export default function ReviewsAdminPage() {
                       <div className="flex items-start gap-4">
                         <div>
                           <p className="font-semibold text-black">
-                            {review.userId?.firstName || "Anonymous"}
+                            {review.user?.name || review.user?.email || "Anonymous"}
                           </p>
                           <p className="text-sm text-gray-600">
-                            {review.productId?.name}
+                            {review.product?.name || "Unknown Product"}
                           </p>
                           <p className="text-sm font-medium text-yellow-600 mt-1">
                             {"⭐".repeat(review.rating)}
