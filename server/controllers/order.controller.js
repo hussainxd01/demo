@@ -243,6 +243,11 @@ const cancelOrder = async (req, res, next) => {
       throw new AppError("Order not found", 404);
     }
 
+    // Check if user is the order owner or admin
+    if (order.user.toString() !== req.userId && req.user.role !== "admin") {
+      throw new AppError("Not authorized to cancel this order", 403);
+    }
+
     // Check if order can be cancelled
     if (["shipped", "delivered", "cancelled"].includes(order.status)) {
       throw new AppError("Order cannot be cancelled", 400);

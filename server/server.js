@@ -2,6 +2,10 @@ require("dotenv").config();
 require("express-async-errors");
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const hpp = require("hpp");
+const mongoSanitize = require("mongo-sanitize");
 const { connectDB } = require("./config/database");
 
 // Import routes
@@ -21,15 +25,62 @@ const { requestLogger } = require("./middleware/requestLogger");
 
 const app = express();
 
-// Middleware
+// Security Middleware
+
+// Set security HTTP headers
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: false, // Disable CSP for API
+}));
+
+// Rate limiting - general API
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: { success: false, message: "Too many requests, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Stricter rate limiting for auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 login/register attempts per windowMs
+  message: { success: false, message: "Too many authentication attempts, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// CORS configuration
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:3000",
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
-app.use(express.json());
-app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+// Body parser with size limits
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
+
+// Prevent HTTP Parameter Pollution
+app.use(hpp({
+  whitelist: ["price", "rating", "category", "brand", "sort", "page", "limit"],
+}));
+
+// Sanitize data against NoSQL injection
+app.use((req, res, next) => {
+  if (req.body) req.body = mongoSanitize(req.body);
+  if (req.query) req.query = mongoSanitize(req.query);
+  if (req.params) req.params = mongoSanitize(req.params);
+  next();
+});
+
+// Apply general rate limiting to all requests
+app.use(generalLimiter);
+
 app.use(requestLogger);
 
 // Connect to database
@@ -38,7 +89,7 @@ connectDB();
 // API Routes - v1
 const apiPrefix = "/api/v1";
 
-app.use(`${apiPrefix}/auth`, authRoutes);
+app.use(`${apiPrefix}/auth`, authLimiter, authRoutes);
 app.use(`${apiPrefix}/categories`, categoryRoutes);
 app.use(`${apiPrefix}/products`, productRoutes);
 app.use(`${apiPrefix}/users`, userRoutes);

@@ -1,20 +1,53 @@
 const Joi = require("joi");
 
+// Custom sanitizer extension for XSS prevention
+const sanitizeString = (value) => {
+  if (typeof value !== 'string') return value;
+  // Remove potential XSS vectors while keeping safe content
+  return value
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+\s*=/gi, '')
+    .trim();
+};
+
+// Custom Joi extension with sanitization
+const JoiSanitized = Joi.extend((joi) => ({
+  type: 'string',
+  base: joi.string(),
+  coerce: (value, helpers) => {
+    if (typeof value === 'string') {
+      return { value: sanitizeString(value) };
+    }
+    return { value };
+  },
+}));
+
+// Password pattern: at least 8 chars, 1 uppercase, 1 lowercase, 1 number
+const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
+
 const authValidation = {
   register: Joi.object({
-    name: Joi.string().required().min(2).max(50),
-    email: Joi.string().email().required(),
-    password: Joi.string().required().min(6),
-    confirmPassword: Joi.string().required().valid(Joi.ref("password")),
+    name: JoiSanitized.string().required().min(2).max(50)
+      .messages({ 'string.min': 'Name must be at least 2 characters' }),
+    email: JoiSanitized.string().email().required().lowercase()
+      .messages({ 'string.email': 'Please provide a valid email address' }),
+    password: JoiSanitized.string().required().min(8).pattern(passwordPattern)
+      .messages({
+        'string.min': 'Password must be at least 8 characters',
+        'string.pattern.base': 'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+      }),
+    confirmPassword: JoiSanitized.string().required().valid(Joi.ref("password"))
+      .messages({ 'any.only': 'Passwords do not match' }),
   }).unknown(false),
 
   login: Joi.object({
-    email: Joi.string().email().required(),
-    password: Joi.string().required(),
+    email: JoiSanitized.string().email().required().lowercase(),
+    password: JoiSanitized.string().required(),
   }).unknown(false),
 
   refreshToken: Joi.object({
-    refreshToken: Joi.string().required(),
+    refreshToken: JoiSanitized.string().required(),
   }).unknown(false),
 };
 

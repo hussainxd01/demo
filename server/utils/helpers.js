@@ -44,29 +44,48 @@ const getPaginationParams = (query) => {
   return { page, limit, skip };
 };
 
+// Escape regex special characters to prevent ReDoS attacks
+const escapeRegex = (str) => {
+  if (typeof str !== 'string') return '';
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+// Sanitize MongoDB ObjectId to prevent injection
+const isValidObjectId = (id) => {
+  return /^[0-9a-fA-F]{24}$/.test(id);
+};
+
 // Filter helper
 const buildFilter = (query) => {
   const filter = {};
 
-  if (query.search) {
+  if (query.search && typeof query.search === 'string') {
+    // Escape regex special characters and limit length
+    const sanitizedSearch = escapeRegex(query.search.slice(0, 100));
     filter.$or = [
-      { name: { $regex: query.search, $options: 'i' } },
-      { description: { $regex: query.search, $options: 'i' } },
+      { name: { $regex: sanitizedSearch, $options: 'i' } },
+      { description: { $regex: sanitizedSearch, $options: 'i' } },
     ];
   }
 
-  if (query.category) {
-    filter.category = query.category;
+  if (query.category && typeof query.category === 'string') {
+    // Validate ObjectId format
+    if (isValidObjectId(query.category)) {
+      filter.category = query.category;
+    }
   }
 
-  if (query.brand) {
-    filter.brand = query.brand;
+  if (query.brand && typeof query.brand === 'string') {
+    // Sanitize brand input
+    filter.brand = query.brand.slice(0, 100);
   }
 
   if (query.minPrice || query.maxPrice) {
     filter.price = {};
-    if (query.minPrice) filter.price.$gte = Number(query.minPrice);
-    if (query.maxPrice) filter.price.$lte = Number(query.maxPrice);
+    const minPrice = Number(query.minPrice);
+    const maxPrice = Number(query.maxPrice);
+    if (!isNaN(minPrice) && minPrice >= 0) filter.price.$gte = minPrice;
+    if (!isNaN(maxPrice) && maxPrice >= 0) filter.price.$lte = maxPrice;
   }
 
   if (query.inStock === 'true') {
@@ -134,4 +153,6 @@ module.exports = {
   sendSuccess,
   sendPaginatedResponse,
   extractPublicIdFromUrl,
+  escapeRegex,
+  isValidObjectId,
 };

@@ -32,6 +32,11 @@ const protect = async (req, res, next) => {
       throw new AppError('User not found', 404);
     }
 
+    // Check if user account is still active
+    if (!user.isActive) {
+      throw new AppError('Your account has been deactivated', 403);
+    }
+
     req.user = user;
     req.userId = decoded.id;
     next();

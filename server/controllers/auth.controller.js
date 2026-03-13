@@ -46,6 +46,11 @@ const login = async (req, res, next) => {
       throw new AppError('Invalid email or password', 401);
     }
 
+    // Check if user account is active
+    if (!user.isActive) {
+      throw new AppError('Your account has been deactivated. Please contact support.', 403);
+    }
+
     // Verify password
     const isPasswordValid = await comparePassword(password, user.password);
     if (!isPasswordValid) {
@@ -80,17 +85,22 @@ const refreshAccessToken = async (req, res, next) => {
       throw new AppError('Invalid or expired refresh token', 401);
     }
 
-    // Check if user exists
+    // Check if user exists and is active
     const user = await User.findById(decoded.id);
     if (!user) {
       throw new AppError('User not found', 404);
     }
 
-    // Generate new access token
-    const { accessToken: newAccessToken } = generateTokens(user._id);
+    if (!user.isActive) {
+      throw new AppError('User account is deactivated', 403);
+    }
+
+    // Generate new tokens (both access and refresh for rotation)
+    const { accessToken: newAccessToken, refreshToken: newRefreshToken } = generateTokens(user._id);
 
     sendSuccess(res, 200, {
       accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
     }, 'Token refreshed successfully');
   } catch (error) {
     next(error);
