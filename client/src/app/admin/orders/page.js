@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Search, Loader, Filter, Eye } from "lucide-react";
 import orderService from "@/lib/services/orderService";
 import DataTable from "@/components/admin/DataTable";
@@ -15,30 +15,29 @@ const statusOptions = [
 ];
 
 export default function OrdersAdminPage() {
-  const [orders, setOrders] = useState([]);
+  const [allOrders, setAllOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [pagination, setPagination] = useState({ total: 0, limit: 10 });
   const [statusFilter, setStatusFilter] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     loadOrders();
-  }, [page, statusFilter]);
+  }, [statusFilter]);
 
   const loadOrders = async () => {
     try {
       setIsLoading(true);
-      const response = await orderService.getAllOrders(
-        page,
-        10,
-        statusFilter ? { status: statusFilter } : {},
-      );
+      const filters = {};
+      if (statusFilter) filters.status = statusFilter;
+      
+      // Load more orders to allow client-side filtering
+      const response = await orderService.getAllOrders(1, 100, filters);
       // Response structure: { data: [...orders], total, page, limit, pages, ... }
       const ordersData = response.data || response;
-      setOrders(Array.isArray(ordersData) ? ordersData : []);
-      setPagination({ total: response.total, limit: 10 });
+      setAllOrders(Array.isArray(ordersData) ? ordersData : []);
     } catch (error) {
       console.error("Failed to load orders", error);
     } finally {
@@ -46,10 +45,40 @@ export default function OrdersAdminPage() {
     }
   };
 
+  // Client-side filtering for search
+  const filteredOrders = useMemo(() => {
+    if (!searchTerm.trim()) return allOrders;
+    
+    const searchLower = searchTerm.toLowerCase().trim();
+    return allOrders.filter((order) => {
+      const orderId = order._id?.toLowerCase() || "";
+      const customerName = order.user?.name?.toLowerCase() || "";
+      const customerEmail = order.user?.email?.toLowerCase() || "";
+      
+      return (
+        orderId.includes(searchLower) ||
+        customerName.includes(searchLower) ||
+        customerEmail.includes(searchLower)
+      );
+    });
+  }, [allOrders, searchTerm]);
+
+  // Paginate the filtered orders
+  const paginatedOrders = useMemo(() => {
+    const start = (page - 1) * 10;
+    return filteredOrders.slice(start, start + 10);
+  }, [filteredOrders, page]);
+
+  const pagination = useMemo(() => ({
+    total: filteredOrders.length,
+    limit: 10,
+    page,
+  }), [filteredOrders.length, page]);
+
   const handleStatusUpdate = async (orderId, newStatus) => {
     try {
       await orderService.updateOrderStatus(orderId, newStatus);
-      setOrders((prev) =>
+      setAllOrders((prev) =>
         prev.map((order) =>
           order._id === orderId ? { ...order, status: newStatus } : order,
         ),
@@ -70,7 +99,7 @@ export default function OrdersAdminPage() {
   };
 
   const handleOrderUpdate = (orderId, updates) => {
-    setOrders((prev) =>
+    setAllOrders((prev) =>
       prev.map((order) =>
         order._id === orderId ? { ...order, ...updates } : order,
       ),
@@ -167,7 +196,12 @@ export default function OrdersAdminPage() {
             <Search className="absolute left-4 top-3 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search orders..."
+              placeholder="Search by order ID, customer name, or email..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1);
+              }}
               className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
             />
           </div>
@@ -198,8 +232,8 @@ export default function OrdersAdminPage() {
         ) : (
           <DataTable
             columns={columns}
-            data={orders}
-            pagination={{ ...pagination, page }}
+            data={paginatedOrders}
+            pagination={pagination}
             onPageChange={setPage}
           />
         )}

@@ -165,6 +165,7 @@ export default function CheckoutPage() {
         shippingAddress,
         paymentMethod: orderData.paymentMethod,
         notes: orderData.notes || "",
+        giftWrap: orderData.giftWrap,
       };
 
       const response = await orderService.createOrder(orderPayload);
