@@ -105,7 +105,7 @@ const orderValidation = {
   create: Joi.object({
     shippingAddress: Joi.object({
       name: Joi.string().required(),
-      email: Joi.string().email().optional(), // ✅ add this
+      email: Joi.string().email().optional(),
       phone: Joi.string().required(),
       address: Joi.string().required(),
       city: Joi.string().required(),
@@ -117,6 +117,8 @@ const orderValidation = {
     paymentMethod: Joi.string().valid("card", "paypal", "cod").required(),
 
     notes: Joi.string().allow(""),
+
+    giftWrap: Joi.boolean().optional(),
   }).unknown(false),
 };
 const categoryValidation = {
