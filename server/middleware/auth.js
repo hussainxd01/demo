@@ -1,6 +1,6 @@
-const jwt = require('jsonwebtoken');
-const { AppError } = require('./errorHandler');
-const User = require('../models/User');
+const jwt = require("jsonwebtoken");
+const { AppError } = require("./errorHandler");
+const User = require("../models/User");
 
 const verifyToken = (token, secret) => {
   try {
@@ -14,22 +14,30 @@ const protect = async (req, res, next) => {
   try {
     let token;
 
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-      token = req.headers.authorization.split(' ')[1];
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
     }
 
     if (!token) {
-      throw new AppError('Please log in to access this resource', 401);
+      throw new AppError("Please log in to access this resource", 401);
     }
 
     const decoded = verifyToken(token, process.env.JWT_SECRET);
     if (!decoded) {
-      throw new AppError('Invalid or expired token', 401);
+      throw new AppError("Invalid or expired token", 401);
     }
 
     const user = await User.findById(decoded.id);
     if (!user) {
-      throw new AppError('User not found', 404);
+      throw new AppError("User not found", 404);
+    }
+
+    // Check if user account is still active
+    if (!user.isActive) {
+      throw new AppError("Your account has been deactivated", 403);
     }
 
     req.user = user;
@@ -43,7 +51,10 @@ const protect = async (req, res, next) => {
 const restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      throw new AppError('You do not have permission to perform this action', 403);
+      throw new AppError(
+        "You do not have permission to perform this action",
+        403,
+      );
     }
     next();
   };
@@ -53,8 +64,11 @@ const optional = (req, res, next) => {
   try {
     let token;
 
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-      token = req.headers.authorization.split(' ')[1];
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
     }
 
     if (token) {
@@ -72,9 +86,11 @@ const optional = (req, res, next) => {
 
 const requestLogger = (req, res, next) => {
   const start = Date.now();
-  res.on('finish', () => {
+  res.on("finish", () => {
     const duration = Date.now() - start;
-    console.log(`${req.method} ${req.originalUrl} - ${res.statusCode} - ${duration}ms`);
+    console.log(
+      `${req.method} ${req.originalUrl} - ${res.statusCode} - ${duration}ms`,
+    );
   });
   next();
 };

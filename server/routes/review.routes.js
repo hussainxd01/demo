@@ -59,16 +59,16 @@ router.delete("/:reviewId", protect, reviewController.deleteReview);
 /**
  * @route   POST /api/v1/reviews/:reviewId/helpful
  * @desc    Mark review as helpful
- * @access  Public
+ * @access  Private (requires authentication to prevent abuse)
  */
-router.post("/:reviewId/helpful", reviewController.markHelpful);
+router.post("/:reviewId/helpful", protect, reviewController.markHelpful);
 
 /**
  * @route   POST /api/v1/reviews/:reviewId/unhelpful
  * @desc    Mark review as unhelpful
- * @access  Public
+ * @access  Private (requires authentication to prevent abuse)
  */
-router.post("/:reviewId/unhelpful", reviewController.markUnhelpful);
+router.post("/:reviewId/unhelpful", protect, reviewController.markUnhelpful);
 
 /**
  * @route   GET /api/v1/reviews/admin/pending
