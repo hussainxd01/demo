@@ -3,12 +3,15 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import cartService from "@/lib/services/cartService";
-import { Heart, Loader, ShoppingCart } from "lucide-react";
+import { useShop } from "@/context/ShopContext";
+import { Heart, Loader, ShoppingCart, Check } from "lucide-react";
 
 export default function FavoritesPage() {
+  const { addToCart, openCart } = useShop();
   const [favorites, setFavorites] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [addedToCart, setAddedToCart] = useState({});
 
   useEffect(() => {
     loadFavorites();
@@ -109,11 +112,31 @@ export default function FavoritesPage() {
                 </div>
               </Link>
               <button
-                onClick={() => cartService.addToCart(product._id, 1)}
-                className="w-full flex items-center justify-center gap-2 py-2 border border-black text-black rounded-lg hover:bg-black hover:text-white transition-colors"
+                onClick={async () => {
+                  await addToCart(product, 1);
+                  setAddedToCart((prev) => ({ ...prev, [product._id]: true }));
+                  setTimeout(() => {
+                    setAddedToCart((prev) => ({ ...prev, [product._id]: false }));
+                  }, 2000);
+                }}
+                disabled={addedToCart[product._id]}
+                className={`w-full flex items-center justify-center gap-2 py-2 border rounded-lg transition-colors ${
+                  addedToCart[product._id]
+                    ? "bg-green-600 text-white border-green-600"
+                    : "border-black text-black hover:bg-black hover:text-white"
+                }`}
               >
-                <ShoppingCart className="w-4 h-4" />
-                Add to Cart
+                {addedToCart[product._id] ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    Added to Cart
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="w-4 h-4" />
+                    Add to Cart
+                  </>
+                )}
               </button>
             </div>
           ))}

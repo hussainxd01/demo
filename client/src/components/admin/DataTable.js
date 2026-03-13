@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { ChevronLeft, ChevronRight, Edit2, Trash2 } from "lucide-react";
+import ConfirmModal from "./ConfirmModal";
 
 export default function DataTable({
   columns,
@@ -11,8 +12,38 @@ export default function DataTable({
   onDelete,
   pagination,
   onPageChange,
+  deleteItemName = "item",
 }) {
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, itemId: null, itemName: "" });
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteClick = (row) => {
+    setDeleteModal({
+      isOpen: true,
+      itemId: row._id,
+      itemName: row.name || row.title || row._id.slice(-8).toUpperCase(),
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteModal.itemId) return;
+    setIsDeleting(true);
+    try {
+      await onDelete(deleteModal.itemId);
+    } finally {
+      setIsDeleting(false);
+      setDeleteModal({ isOpen: false, itemId: null, itemName: "" });
+    }
+  };
+
+  const handleCloseModal = () => {
+    if (!isDeleting) {
+      setDeleteModal({ isOpen: false, itemId: null, itemName: "" });
+    }
+  };
+
   return (
+    <>
     <div className="space-y-4">
       <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
         <table className="w-full">
@@ -75,9 +106,7 @@ export default function DataTable({
                       )}
                       {onDelete && (
                         <button
-                          onClick={() => {
-                            if (confirm("Are you sure?")) onDelete(row._id);
-                          }}
+                          onClick={() => handleDeleteClick(row)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -126,5 +155,19 @@ export default function DataTable({
         </div>
       )}
     </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmDelete}
+        title={`Delete ${deleteItemName}`}
+        message={`Are you sure you want to delete "${deleteModal.itemName}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+      />
+    </>
   );
 }

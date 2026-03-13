@@ -426,6 +426,14 @@ export default function OrderDetailPage() {
                   Rs. {order.tax?.toFixed(2) || "0.00"}
                 </span>
               </div>
+              {order.giftWrap && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Gift Wrap</span>
+                  <span className="font-medium">
+                    Rs. {order.giftWrapPrice?.toFixed(2) || "100.00"}
+                  </span>
+                </div>
+              )}
               {order.discount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Discount</span>
