@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, Loader, Filter } from "lucide-react";
+import { Search, Loader, Filter, Eye } from "lucide-react";
 import orderService from "@/lib/services/orderService";
 import DataTable from "@/components/admin/DataTable";
+import OrderDetailModal from "@/components/admin/OrderDetailModal";
 
 const statusOptions = [
   "pending",
@@ -19,6 +20,8 @@ export default function OrdersAdminPage() {
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ total: 0, limit: 10 });
   const [statusFilter, setStatusFilter] = useState("");
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     loadOrders();
@@ -56,29 +59,54 @@ export default function OrdersAdminPage() {
     }
   };
 
+  const handleOpenModal = (orderId) => {
+    setSelectedOrderId(orderId);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedOrderId(null);
+  };
+
+  const handleOrderUpdate = (orderId, updates) => {
+    setOrders((prev) =>
+      prev.map((order) =>
+        order._id === orderId ? { ...order, ...updates } : order,
+      ),
+    );
+  };
+
   const columns = [
     {
       key: "orderId",
       label: "Order ID",
-      width: "15%",
-      render: (_, row) => row._id.slice(-8).toUpperCase(),
+      width: "12%",
+      render: (_, row) => (
+        <button
+          onClick={() => handleOpenModal(row._id)}
+          className="text-black font-medium hover:underline"
+        >
+          #{row._id.slice(-8).toUpperCase()}
+        </button>
+      ),
     },
     {
       key: "customer",
       label: "Customer",
-      width: "20%",
+      width: "18%",
       render: (_, row) => row.user?.name || "-",
     },
     {
       key: "email",
       label: "Email",
-      width: "20%",
+      width: "18%",
       render: (_, row) => row.user?.email || "-",
     },
     {
       key: "total",
       label: "Total",
-      width: "15%",
+      width: "12%",
       render: (value) => `Rs. ${value?.toFixed(2) || "0.00"}`,
     },
     {
@@ -88,7 +116,11 @@ export default function OrdersAdminPage() {
       render: (value, row) => (
         <select
           value={value}
-          onChange={(e) => handleStatusUpdate(row._id, e.target.value)}
+          onChange={(e) => {
+            e.stopPropagation();
+            handleStatusUpdate(row._id, e.target.value);
+          }}
+          onClick={(e) => e.stopPropagation()}
           className={`px-3 py-1 rounded text-xs font-medium cursor-pointer ${
             value === "delivered"
               ? "bg-green-100 text-green-700"
@@ -107,6 +139,20 @@ export default function OrdersAdminPage() {
             </option>
           ))}
         </select>
+      ),
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      width: "10%",
+      render: (_, row) => (
+        <button
+          onClick={() => handleOpenModal(row._id)}
+          className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-black rounded hover:bg-gray-800 transition-colors"
+        >
+          <Eye className="w-4 h-4" />
+          View
+        </button>
       ),
     },
   ];
@@ -158,6 +204,14 @@ export default function OrdersAdminPage() {
           />
         )}
       </div>
+
+      {/* Order Detail Modal */}
+      <OrderDetailModal
+        isOpen={isModalOpen}
+        orderId={selectedOrderId}
+        onClose={handleCloseModal}
+        onOrderUpdate={handleOrderUpdate}
+      />
     </div>
   );
 }
