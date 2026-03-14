@@ -25,6 +25,11 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please provide a brand"],
     },
+    gender: {
+      type: String,
+      enum: ["men", "women", "unisex"],
+      default: "unisex",
+    },
     stock: {
       type: Number,
       required: [true, "Please provide stock quantity"],
