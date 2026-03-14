@@ -66,6 +66,12 @@ export default function Header() {
             >
               BODY CARE
             </Link>
+            <Link
+              href="/mens"
+              className="hover:text-gray-600 transition-colors"
+            >
+              MENS
+            </Link>
           </nav>
 
           {/* Right: Action Icons */}
