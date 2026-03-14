@@ -49,10 +49,44 @@ exports.getCategoryById = async (req, res) => {
   }
 };
 
+// Get single category by slug
+exports.getCategoryBySlug = async (req, res) => {
+  try {
+    const category = await Category.findOne({ slug: req.params.slug });
+
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found",
+      });
+    }
+
+    // Non-admin users can only see active categories
+    if (!req.user || req.user.role !== "admin") {
+      if (!category.isActive) {
+        return res.status(404).json({
+          success: false,
+          message: "Category not found",
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      data: category,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error fetching category",
+    });
+  }
+};
+
 // Create new category
 exports.createCategory = async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, subcategories } = req.body;
 
     // Validate input
     if (!name || name.trim() === "") {
@@ -74,9 +108,14 @@ exports.createCategory = async (req, res) => {
       });
     }
 
+    // Process subcategories - trim and filter empty values
+    const processedSubcategories = Array.isArray(subcategories)
+      ? subcategories.map(s => s.trim()).filter(s => s.length > 0)
+      : [];
+
     const category = new Category({
       name: name.trim(),
-      description: description ? description.trim() : "",
+      subcategories: processedSubcategories,
     });
 
     await category.save();
@@ -97,7 +136,7 @@ exports.createCategory = async (req, res) => {
 // Update category
 exports.updateCategory = async (req, res) => {
   try {
-    const { name, description, isActive } = req.body;
+    const { name, subcategories, isActive } = req.body;
     const category = await Category.findById(req.params.id);
 
     if (!category) {
@@ -123,7 +162,11 @@ exports.updateCategory = async (req, res) => {
     }
 
     if (name) category.name = name.trim();
-    if (description !== undefined) category.description = description.trim();
+    if (subcategories !== undefined) {
+      category.subcategories = Array.isArray(subcategories)
+        ? subcategories.map(s => s.trim()).filter(s => s.length > 0)
+        : [];
+    }
     if (isActive !== undefined) category.isActive = isActive;
 
     await category.save();
