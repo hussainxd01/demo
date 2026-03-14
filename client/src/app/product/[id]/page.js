@@ -7,7 +7,6 @@ import { Heart, Share2, Truck, Zap, Loader, Star } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 import { getProductById } from "@/lib/api";
 import ExpandableSection from "@/components/common/ExpandableSection";
-import { CATEGORIES } from "@/lib/products";
 import reviewService from "@/lib/services/reviewService";
 import ReviewCard from "@/components/reviews/ReviewCard";
 import ReviewSummary from "@/components/reviews/ReviewSummary";
@@ -160,8 +159,8 @@ export default function ProductPage() {
   const categorySlug =
     typeof product.category === "object"
       ? product.category.slug
-      : CATEGORIES.find((c) => c.name === categoryName)?.slug ||
-        categoryName.toLowerCase().replace(/\s+/g, "-").replace(/&/g, "");
+      : categoryName?.toLowerCase().replace(/\s+/g, "-").replace(/&/g, "") ||
+        "products";
 
   const ingredients = product.specifications?.ingredients || [];
 

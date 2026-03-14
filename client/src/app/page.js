@@ -31,7 +31,7 @@ export default function Home() {
         {/* Background Image */}
         <div className="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=1200&h=800&fit=crop"
+            src="/main.jpg"
             alt="Hero"
             className="w-full h-full object-cover opacity-40"
           />
@@ -49,7 +49,7 @@ export default function Home() {
               </span>
             </h1>
             <Link
-              href="#products"
+              href="/products"
               className="inline-block px-8 py-3 md:py-4 bg-white text-gray-800 font-semibold rounded hover:bg-gray-100 transition-colors"
             >
               VIEW COLLECTION

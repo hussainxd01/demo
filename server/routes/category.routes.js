@@ -8,6 +8,7 @@ const router = express.Router();
 // Public routes
 router.get("/", categoryController.getAllCategories);
 router.get("/stats", categoryController.getCategoryStats);
+router.get("/slug/:slug", categoryController.getCategoryBySlug);
 router.get("/:id", categoryController.getCategoryById);
 
 // Protected routes (admin only)

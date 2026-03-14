@@ -84,3 +84,61 @@ export async function getBrands() {
   const res = await apiClient.get("/products/brands");
   return unwrapData(res, { brands: [] })?.brands || [];
 }
+
+/**
+ * Get all categories
+ */
+export async function getCategories() {
+  const res = await apiClient.get("/categories");
+  return unwrapData(res, []);
+}
+
+/**
+ * Get category by slug
+ */
+export async function getCategoryBySlug(slug) {
+  const res = await apiClient.get(`/categories/slug/${slug}`);
+  return unwrapData(res, null);
+}
+
+/**
+ * Get products with advanced filters
+ */
+export async function getProductsWithFilters({
+  page = 1,
+  limit = 24,
+  category,
+  brands,
+  minPrice,
+  maxPrice,
+  sort,
+  search,
+  tags,
+} = {}) {
+  const params = buildSearchParams({
+    page,
+    limit,
+    category,
+    brand: brands?.length === 1 ? brands[0] : undefined,
+    minPrice,
+    maxPrice,
+    sort,
+    search,
+  });
+  const res = await apiClient.get(`/products?${params.toString()}`);
+  let products = unwrapData(res, []);
+
+  // Client-side filter for multiple brands (if API doesn't support it)
+  if (brands && brands.length > 1) {
+    products = products.filter((p) => brands.includes(p.brand));
+  }
+
+  // Client-side filter for tags (subcategory)
+  if (tags && tags.length > 0) {
+    products = products.filter(
+      (p) => p.tags && tags.some((tag) => p.tags.includes(tag)),
+    );
+  }
+
+  return products;
+}

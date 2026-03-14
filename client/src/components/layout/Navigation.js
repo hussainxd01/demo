@@ -4,29 +4,33 @@ import React from "react";
 import Link from "next/link";
 import { X, ChevronRight } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
-import { getBrands } from "@/lib/api";
-import { CATEGORIES } from "@/lib/products";
+import { getBrands, getCategories } from "@/lib/api";
 
 export default function Navigation() {
   const { isMenuOpen, closeMenu } = useShop();
   const [expandedMenu, setExpandedMenu] = React.useState(null);
   const [brands, setBrands] = React.useState([]);
+  const [categories, setCategories] = React.useState([]);
 
   const handleMenuClick = (menu) => {
     setExpandedMenu(expandedMenu === menu ? null : menu);
   };
 
   React.useEffect(() => {
-    const loadBrands = async () => {
+    const loadData = async () => {
       if (!isMenuOpen) return;
       try {
-        const data = await getBrands();
-        setBrands(data);
+        const [brandsData, categoriesData] = await Promise.all([
+          getBrands(),
+          getCategories(),
+        ]);
+        setBrands(brandsData);
+        setCategories(categoriesData);
       } catch (error) {
-        console.error("Failed to load brands:", error);
+        console.error("Failed to load navigation data:", error);
       }
     };
-    loadBrands();
+    loadData();
   }, [isMenuOpen]);
 
   return (
@@ -92,9 +96,9 @@ export default function Navigation() {
             </div>
 
             {/* Categories Section */}
-            {CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <Link
-                key={category.slug}
+                key={category._id || category.slug}
                 href={`/category/${category.slug}`}
                 className="w-full block px-4 py-4 text-left font-medium text-gray-800 border-b border-gray-200 hover:bg-gray-50 transition-colors"
                 onClick={closeMenu}

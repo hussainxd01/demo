@@ -169,13 +169,13 @@ const orderValidation = {
 const categoryValidation = {
   create: Joi.object({
     name: Joi.string().required().min(2).max(50),
-    description: Joi.string().required().min(5).max(500),
+    subcategories: Joi.array().items(Joi.string().min(1).max(50)).default([]),
     isActive: Joi.boolean().default(true),
   }).unknown(false),
 
   update: Joi.object({
     name: Joi.string().min(2).max(50),
-    description: Joi.string().min(5).max(500),
+    subcategories: Joi.array().items(Joi.string().min(1).max(50)),
     isActive: Joi.boolean(),
   }).unknown(false),
 };

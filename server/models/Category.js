@@ -10,10 +10,15 @@ const categorySchema = new mongoose.Schema(
       minlength: [2, "Category name must be at least 2 characters"],
       maxlength: [100, "Category name cannot exceed 100 characters"],
     },
-    description: {
-      type: String,
-      trim: true,
-      maxlength: [500, "Description cannot exceed 500 characters"],
+    subcategories: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: function (v) {
+          return v.every((sub) => sub.length >= 1 && sub.length <= 50);
+        },
+        message: "Each subcategory must be between 1 and 50 characters",
+      },
     },
     slug: {
       type: String,

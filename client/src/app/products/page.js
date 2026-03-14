@@ -1,26 +1,69 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import ProductGrid from "@/components/products/ProductGrid";
-import { getProducts, getProductsByCategory } from "@/lib/api";
-import { CATEGORIES } from "@/lib/products";
+import ProductCard from "@/components/products/ProductCard";
+import CategoryToolbar from "@/components/products/CategoryToolbar";
+import FilterSidebar from "@/components/products/FilterSidebar";
+import { getProductsWithFilters, getCategories, getBrands } from "@/lib/api";
+import { useShop } from "@/context/ShopContext";
+import "./products-page.css";
 
 export default function ProductsPage() {
+  const { openCart } = useShop();
+
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [allBrands, setAllBrands] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [gridView, setGridView] = useState("large");
+  const [sortValue, setSortValue] = useState("name-asc");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    minPrice: "",
+    maxPrice: "",
+    brands: [],
+  });
 
+  // Load categories
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await getCategories();
+        setCategories(data);
+      } catch (error) {
+        console.error("Failed to load categories:", error);
+      }
+    };
+    loadCategories();
+  }, []);
+
+  // Load brands
+  useEffect(() => {
+    const loadBrands = async () => {
+      try {
+        const brands = await getBrands();
+        setAllBrands(brands);
+      } catch (error) {
+        console.error("Failed to load brands:", error);
+      }
+    };
+    loadBrands();
+  }, []);
+
+  // Load products when filters change
   useEffect(() => {
     const loadProducts = async () => {
       setIsLoading(true);
       try {
-        let data;
-        if (selectedCategory) {
-          data = await getProductsByCategory(selectedCategory);
-        } else {
-          data = await getProducts();
-        }
+        const data = await getProductsWithFilters({
+          category: selectedCategory || undefined,
+          brands: filters.brands.length > 0 ? filters.brands : undefined,
+          minPrice: filters.minPrice || undefined,
+          maxPrice: filters.maxPrice || undefined,
+          sort: sortValue,
+        });
         setProducts(data);
       } catch (error) {
         console.error("Failed to load products:", error);
@@ -30,51 +73,136 @@ export default function ProductsPage() {
     };
 
     loadProducts();
-  }, [selectedCategory]);
+  }, [selectedCategory, filters, sortValue]);
+
+  // Get hero image from first product
+  const heroImage = products[0]?.images?.[0]?.url || null;
+
+  // Grid products (exclude hero in large view)
+  const gridProducts =
+    gridView === "large" && heroImage ? products.slice(1) : products;
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="px-4 md:px-6 py-8 md:py-12 border-b border-gray-200">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-          All Products
-        </h1>
-        <p className="text-gray-600">
-          Discover our full range of luxury skincare and beauty products.
-        </p>
+    <div className="products-page">
+      {/* Breadcrumb */}
+      <div className="breadcrumb-section">
+        <div className="breadcrumb-container">
+          <div className="breadcrumb">
+            <Link href="/">Home</Link>
+            <span>/</span>
+            <span className="current">All Products</span>
+          </div>
+        </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
-        {/* Category Filter */}
-        <div className="mb-8 flex flex-wrap gap-2">
+      <div className="products-container">
+        {/* Page Title */}
+        <h1 className="page-title">All Products</h1>
+
+        {/* Category Pills */}
+        <div className="category-pills">
           <button
+            className={`pill ${!selectedCategory ? "active" : ""}`}
             onClick={() => setSelectedCategory(null)}
-            className={`px-4 py-2 rounded-full font-medium transition-colors ${
-              selectedCategory === null
-                ? "bg-gray-800 text-white"
-                : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-            }`}
           >
-            All
+            All Products
           </button>
-          {CATEGORIES.map((category) => (
+          {categories.map((cat) => (
             <button
-              key={category.slug}
-              onClick={() => setSelectedCategory(category.name)}
-              className={`px-4 py-2 rounded-full font-medium transition-colors ${
-                selectedCategory === category.name
-                  ? "bg-gray-800 text-white"
-                  : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-              }`}
+              key={cat._id}
+              className={`pill ${selectedCategory === cat._id ? "active" : ""}`}
+              onClick={() => setSelectedCategory(cat._id)}
             >
-              {category.name}
+              {cat.name}
             </button>
           ))}
         </div>
 
-        {/* Products Grid */}
-        <ProductGrid products={products} isLoading={isLoading} />
+        {/* Toolbar */}
+        <CategoryToolbar
+          itemCount={products.length}
+          gridView={gridView}
+          onGridViewChange={setGridView}
+          sortValue={sortValue}
+          onSortChange={setSortValue}
+          onFilterClick={() => setIsFilterOpen(true)}
+        />
+
+        {/* Products */}
+        {isLoading ? (
+          <div className="loading-grid">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="loading-card">
+                <div className="loading-image" />
+                <div className="loading-text" />
+                <div className="loading-text short" />
+              </div>
+            ))}
+          </div>
+        ) : products.length === 0 ? (
+          <div className="empty-state">
+            <p>No products found</p>
+            {(filters.brands.length > 0 ||
+              filters.minPrice ||
+              filters.maxPrice ||
+              selectedCategory) && (
+              <button
+                className="clear-filters-btn"
+                onClick={() => {
+                  setFilters({ minPrice: "", maxPrice: "", brands: [] });
+                  setSelectedCategory(null);
+                }}
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+        ) : gridView === "large" && heroImage ? (
+          <div className="featured-layout">
+            {/* Hero Image - First Product */}
+            <div className="hero-product">
+              <Link href={`/product/${products[0]._id || products[0].id}`}>
+                <img
+                  src={heroImage}
+                  alt={products[0]?.name || "Featured product"}
+                  crossOrigin="anonymous"
+                />
+              </Link>
+            </div>
+            {/* Rest of Products */}
+            <div className="featured-grid">
+              {gridProducts.map((product) => (
+                <ProductCard
+                  key={product._id || product.id}
+                  product={product}
+                  onAddClick={openCart}
+                />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div
+            className={`all-products-grid ${gridView === "small" ? "small-grid" : ""}`}
+          >
+            {products.map((product) => (
+              <ProductCard
+                key={product._id || product.id}
+                product={product}
+                onAddClick={openCart}
+              />
+            ))}
+          </div>
+        )}
       </div>
+
+      {/* Filter Sidebar */}
+      <FilterSidebar
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        filters={filters}
+        onFilterChange={setFilters}
+        brands={allBrands}
+      />
     </div>
   );
 }

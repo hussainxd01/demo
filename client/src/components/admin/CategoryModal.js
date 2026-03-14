@@ -13,10 +13,11 @@ export default function CategoryModal({
   const [formData, setFormData] = useState(
     initialData || {
       name: "",
-      description: "",
+      subcategories: [],
     },
   );
   const [errors, setErrors] = useState({});
+  const [subcategoryInput, setSubcategoryInput] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -31,6 +32,31 @@ export default function CategoryModal({
         [name]: "",
       }));
     }
+  };
+
+  const handleSubcategoryKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      addSubcategory();
+    }
+  };
+
+  const addSubcategory = () => {
+    const trimmed = subcategoryInput.trim();
+    if (trimmed && !formData.subcategories.includes(trimmed)) {
+      setFormData((prev) => ({
+        ...prev,
+        subcategories: [...prev.subcategories, trimmed],
+      }));
+      setSubcategoryInput("");
+    }
+  };
+
+  const removeSubcategory = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      subcategories: prev.subcategories.filter((_, i) => i !== index),
+    }));
   };
 
   const validateForm = () => {
@@ -58,9 +84,10 @@ export default function CategoryModal({
     setFormData(
       initialData || {
         name: "",
-        description: "",
+        subcategories: [],
       },
     );
+    setSubcategoryInput("");
     setErrors({});
   };
 
@@ -95,16 +122,47 @@ export default function CategoryModal({
           </div>
 
           <div className="form-group">
-            <label htmlFor="description">Description</label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Enter category description"
-              disabled={isLoading}
-              rows="4"
-            />
+            <label htmlFor="subcategories">Subcategories</label>
+            <div className="subcategories-container">
+              <div className="subcategory-chips">
+                {formData.subcategories.map((sub, index) => (
+                  <span key={index} className="subcategory-chip">
+                    {sub}
+                    <button
+                      type="button"
+                      className="chip-remove"
+                      onClick={() => removeSubcategory(index)}
+                      disabled={isLoading}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div className="subcategory-input-wrapper">
+                <input
+                  type="text"
+                  id="subcategories"
+                  value={subcategoryInput}
+                  onChange={(e) => setSubcategoryInput(e.target.value)}
+                  onKeyDown={handleSubcategoryKeyDown}
+                  placeholder="Type and press Enter to add"
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  className="btn-add-subcategory"
+                  onClick={addSubcategory}
+                  disabled={isLoading || !subcategoryInput.trim()}
+                >
+                  Add
+                </button>
+              </div>
+              <span className="help-text">
+                Press Enter or comma to add subcategories (e.g., Shirts, Pants,
+                Shoes)
+              </span>
+            </div>
           </div>
 
           <div className="modal-footer">
