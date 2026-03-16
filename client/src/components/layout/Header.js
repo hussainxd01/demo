@@ -48,29 +48,26 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8 flex-1 justify-center text-sm font-medium text-gray-800">
-            <Link
-              href="/brands"
-              className="hover:text-gray-600 transition-colors"
-            >
-              BRANDS
+            <Link href="/" className="hover:text-gray-600 transition-colors">
+              HOME
             </Link>
             <Link
-              href="/skincare"
+              href="/category/men"
               className="hover:text-gray-600 transition-colors"
             >
-              SKINCARE
+              MEN
             </Link>
             <Link
-              href="/body-care"
+              href="/category/women"
               className="hover:text-gray-600 transition-colors"
             >
-              BODY CARE
+              WOMEN
             </Link>
             <Link
-              href="/mens"
+              href="/category/bestseller"
               className="hover:text-gray-600 transition-colors"
             >
-              MENS
+              BEST SELLER
             </Link>
           </nav>
 
