@@ -79,6 +79,12 @@ const buildFilter = (query) => {
     filter.brand = query.brand.slice(0, 100);
   }
 
+  if (query.subcategory && typeof query.subcategory === "string") {
+    // Sanitize subcategory input and use case-insensitive regex
+    const sanitizedSubcategory = escapeRegex(query.subcategory.slice(0, 50));
+    filter.subcategory = { $regex: `^${sanitizedSubcategory}$`, $options: "i" };
+  }
+
   if (query.minPrice || query.maxPrice) {
     filter.price = {};
     const minPrice = Number(query.minPrice);

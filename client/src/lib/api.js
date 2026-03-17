@@ -113,7 +113,7 @@ export async function getProductsWithFilters({
   maxPrice,
   sort,
   search,
-  tags,
+  subcategory,
 } = {}) {
   const params = buildSearchParams({
     page,
@@ -124,6 +124,7 @@ export async function getProductsWithFilters({
     maxPrice,
     sort,
     search,
+    subcategory,
   });
   const res = await apiClient.get(`/products?${params.toString()}`);
   let products = unwrapData(res, []);
@@ -133,10 +134,12 @@ export async function getProductsWithFilters({
     products = products.filter((p) => brands.includes(p.brand));
   }
 
-  // Client-side filter for tags (subcategory)
-  if (tags && tags.length > 0) {
+  // Client-side filter for subcategory (if API doesn't support it yet)
+  if (subcategory) {
     products = products.filter(
-      (p) => p.tags && tags.some((tag) => p.tags.includes(tag)),
+      (p) =>
+        p.subcategory &&
+        p.subcategory.toLowerCase() === subcategory.toLowerCase(),
     );
   }
 

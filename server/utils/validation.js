@@ -71,6 +71,7 @@ const productValidation = {
     category: Joi.string()
       .required()
       .regex(/^[0-9a-fA-F]{24}$/),
+    subcategory: Joi.string().allow("").max(50),
     brand: Joi.string().required(),
     stock: Joi.number().required().min(0),
     sku: Joi.string().required(),
@@ -100,6 +101,7 @@ const productValidation = {
     description: Joi.string().min(10),
     price: Joi.number().positive(),
     category: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
+    subcategory: Joi.string().allow("").max(50),
     brand: Joi.string(),
     stock: Joi.number().min(0),
     sku: Joi.string(),

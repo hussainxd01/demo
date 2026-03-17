@@ -21,6 +21,10 @@ const productSchema = new mongoose.Schema(
       ref: "Category",
       required: [true, "Please provide a category"],
     },
+    subcategory: {
+      type: String,
+      default: "",
+    },
     brand: {
       type: String,
       required: [true, "Please provide a brand"],

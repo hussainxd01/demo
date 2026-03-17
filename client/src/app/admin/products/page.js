@@ -53,28 +53,28 @@ export default function ProductsAdminPage() {
     {
       key: "name",
       label: "Product Name",
-      width: "25%",
+      width: "20%",
     },
     {
       key: "brand",
       label: "Brand",
-      width: "15%",
+      width: "12%",
     },
     {
       key: "price",
       label: "Price",
-      width: "12%",
+      width: "10%",
       render: (value) => `Rs. ${value.toFixed(2)}`,
     },
     {
       key: "stock",
       label: "Stock",
-      width: "10%",
+      width: "8%",
     },
     {
       key: "category",
       label: "Category",
-      width: "15%",
+      width: "12%",
       render: (value) => {
         if (typeof value === "object" && value?.name) {
           return value.name;
@@ -83,9 +83,15 @@ export default function ProductsAdminPage() {
       },
     },
     {
+      key: "subcategory",
+      label: "Subcategory",
+      width: "12%",
+      render: (value) => value || "-",
+    },
+    {
       key: "rating",
       label: "Rating",
-      width: "10%",
+      width: "8%",
       render: (value) => `${value || 0}/5`,
     },
   ];

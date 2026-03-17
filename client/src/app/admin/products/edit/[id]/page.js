@@ -43,6 +43,7 @@ export default function EditProductPage({ params }) {
     description: "",
     price: "",
     category: "",
+    subcategory: "",
     brand: "",
     stock: "",
     sku: "",
@@ -119,6 +120,7 @@ export default function EditProductPage({ params }) {
           description: product.description || "",
           price: String(product.price || ""),
           category: product.category?._id || "",
+          subcategory: product.subcategory || "",
           brand: product.brand || "",
           stock: String(product.stock || ""),
           sku: product.sku || "",
@@ -160,11 +162,19 @@ export default function EditProductPage({ params }) {
 
   const tags = useMemo(() => splitList(form.tagsText), [form.tagsText]);
 
+  // Get subcategories for selected category
+  const subcategories = useMemo(() => {
+    const selectedCategory = categories.find((c) => c._id === form.category);
+    return selectedCategory?.subcategories || [];
+  }, [categories, form.category]);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
+      // Reset subcategory when category changes
+      ...(name === "category" && { subcategory: "" }),
     }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
     if (generalError) setGeneralError("");
@@ -271,6 +281,7 @@ export default function EditProductPage({ params }) {
     fd.append("description", form.description.trim());
     fd.append("price", String(Number(form.price)));
     fd.append("category", form.category);
+    fd.append("subcategory", form.subcategory || "");
     fd.append("brand", form.brand.trim());
     fd.append("stock", String(Number(form.stock)));
     fd.append("sku", form.sku.trim().toUpperCase());
@@ -504,21 +515,47 @@ export default function EditProductPage({ params }) {
 
                 <div>
                   <label className="block text-sm font-medium text-black mb-2">
-                    Brand<span className="text-red-500"> *</span>
+                    Subcategory
                   </label>
-                  <input
-                    name="brand"
-                    value={form.brand}
+                  <select
+                    name="subcategory"
+                    value={form.subcategory}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black ${
-                      errors.brand ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="e.g. Dr. Barbara"
-                  />
-                  {errors.brand && (
-                    <p className="text-red-500 text-sm mt-1">{errors.brand}</p>
-                  )}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    disabled={!form.category || subcategories.length === 0}
+                  >
+                    <option value="">
+                      {!form.category
+                        ? "Select a category first"
+                        : subcategories.length === 0
+                          ? "No subcategories available"
+                          : "Select a subcategory"}
+                    </option>
+                    {subcategories.map((sub, index) => (
+                      <option key={index} value={sub}>
+                        {sub}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Brand<span className="text-red-500"> *</span>
+                </label>
+                <input
+                  name="brand"
+                  value={form.brand}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black ${
+                    errors.brand ? "border-red-500" : "border-gray-300"
+                  }`}
+                  placeholder="e.g. Dr. Barbara"
+                />
+                {errors.brand && (
+                  <p className="text-red-500 text-sm mt-1">{errors.brand}</p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
