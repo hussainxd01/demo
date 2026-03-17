@@ -14,7 +14,8 @@ export default function CategoriesPage() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
+  const [modalMode, setModalMode] = useState("create"); // "create" | "edit" | "view"
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -44,18 +45,31 @@ export default function CategoriesPage() {
   };
 
   const handleCreateNew = () => {
-    setEditingCategory(null);
+    setSelectedCategory(null);
+    setModalMode("create");
+    setIsModalOpen(true);
+  };
+
+  const handleView = (category) => {
+    setSelectedCategory(category);
+    setModalMode("view");
     setIsModalOpen(true);
   };
 
   const handleEdit = (category) => {
-    setEditingCategory(category);
+    setSelectedCategory(category);
+    setModalMode("edit");
     setIsModalOpen(true);
+  };
+
+  const handleSwitchToEdit = (category) => {
+    setModalMode("edit");
   };
 
   const handleModalClose = () => {
     setIsModalOpen(false);
-    setEditingCategory(null);
+    setSelectedCategory(null);
+    setModalMode("create");
   };
 
   const handleModalSubmit = async (formData) => {
@@ -63,9 +77,9 @@ export default function CategoriesPage() {
       setIsSubmitting(true);
       setError(null);
 
-      if (editingCategory) {
+      if (selectedCategory) {
         // Update existing category
-        await categoryService.updateCategory(editingCategory._id, formData);
+        await categoryService.updateCategory(selectedCategory._id, formData);
         setSuccess("Category updated successfully");
       } else {
         // Create new category
@@ -85,7 +99,8 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleDeleteClick = (category) => {
+  const handleDeleteClick = (e, category) => {
+    e.stopPropagation(); // Prevent row click from triggering
     const stats = categoryStats.find((s) => s._id === category._id);
     if (stats && stats.productCount > 0) {
       setError(
@@ -94,6 +109,11 @@ export default function CategoriesPage() {
     } else {
       setDeleteConfirm(category);
     }
+  };
+
+  const handleEditClick = (e, category) => {
+    e.stopPropagation(); // Prevent row click from triggering
+    handleEdit(category);
   };
 
   const handleConfirmDelete = async () => {
@@ -186,6 +206,7 @@ export default function CategoriesPage() {
               <thead>
                 <tr>
                   <th>Name</th>
+                  <th>Subcategories</th>
                   <th>Slug</th>
                   <th>Products</th>
                   <th>Status</th>
@@ -195,11 +216,22 @@ export default function CategoriesPage() {
               </thead>
               <tbody>
                 {filteredCategories.map((category) => (
-                  <tr key={category._id}>
+                  <tr
+                    key={category._id}
+                    onClick={() => handleView(category)}
+                    className="clickable-row"
+                  >
                     <td className="category-name">
                       <strong>{category.name}</strong>
-                      {category.description && (
-                        <p className="category-desc">{category.description}</p>
+                    </td>
+                    <td className="category-subcategories">
+                      {category.subcategories &&
+                      category.subcategories.length > 0 ? (
+                        <span className="subcategory-count">
+                          {category.subcategories.length} subcategories
+                        </span>
+                      ) : (
+                        <span className="no-subcategories-text">None</span>
                       )}
                     </td>
                     <td className="category-slug">{category.slug}</td>
@@ -219,14 +251,14 @@ export default function CategoriesPage() {
                     <td className="category-actions">
                       <button
                         className="btn-action btn-edit"
-                        onClick={() => handleEdit(category)}
+                        onClick={(e) => handleEditClick(e, category)}
                         title="Edit"
                       >
                         ✎
                       </button>
                       <button
                         className="btn-action btn-delete"
-                        onClick={() => handleDeleteClick(category)}
+                        onClick={(e) => handleDeleteClick(e, category)}
                         title="Delete"
                       >
                         🗑️
@@ -250,7 +282,7 @@ export default function CategoriesPage() {
                 className="modal-close"
                 onClick={() => setDeleteConfirm(null)}
               >
-                ✕
+                ×
               </button>
             </div>
             <div className="modal-body">
@@ -258,6 +290,13 @@ export default function CategoriesPage() {
                 Are you sure you want to delete{" "}
                 <strong>{deleteConfirm.name}</strong>?
               </p>
+              {deleteConfirm.subcategories &&
+                deleteConfirm.subcategories.length > 0 && (
+                  <p className="subcategories-warning">
+                    This category has {deleteConfirm.subcategories.length}{" "}
+                    subcategories that will also be removed.
+                  </p>
+                )}
               <p className="warning">This action cannot be undone.</p>
             </div>
             <div className="modal-footer">
@@ -284,8 +323,10 @@ export default function CategoriesPage() {
         isOpen={isModalOpen}
         onClose={handleModalClose}
         onSubmit={handleModalSubmit}
-        initialData={editingCategory}
+        initialData={selectedCategory}
         isLoading={isSubmitting}
+        mode={modalMode}
+        onEdit={handleSwitchToEdit}
       />
     </div>
   );

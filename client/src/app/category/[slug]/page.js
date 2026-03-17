@@ -71,7 +71,7 @@ export default function CategoryPage({ params }) {
           minPrice: filters.minPrice || undefined,
           maxPrice: filters.maxPrice || undefined,
           sort: sortValue,
-          tags: selectedSubcategory ? [selectedSubcategory] : undefined,
+          subcategory: selectedSubcategory || undefined,
         });
         setProducts(data);
       } catch (error) {
@@ -84,15 +84,13 @@ export default function CategoryPage({ params }) {
     loadProducts();
   }, [category?._id, filters, sortValue, selectedSubcategory]);
 
-  // Filter products by subcategory (using tags)
+  // Filter products by subcategory field
   const filteredProducts = useMemo(() => {
     if (!selectedSubcategory) return products;
     return products.filter(
       (p) =>
-        p.tags &&
-        p.tags.some(
-          (tag) => tag.toLowerCase() === selectedSubcategory.toLowerCase(),
-        ),
+        p.subcategory &&
+        p.subcategory.toLowerCase() === selectedSubcategory.toLowerCase(),
     );
   }, [products, selectedSubcategory]);
 

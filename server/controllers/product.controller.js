@@ -19,7 +19,7 @@ const getProducts = async (req, res, next) => {
     const sort = buildSort(req.query);
 
     const products = await Product.find(filter)
-      .populate("category", "name slug")
+      .populate("category", "name slug subcategories")
       .sort(sort)
       .skip(skip)
       .limit(limit)
@@ -50,7 +50,7 @@ const getProductById = async (req, res, next) => {
     const { id } = req.params;
 
     const product = await Product.findById(id)
-      .populate("category", "name slug")
+      .populate("category", "name slug subcategories")
       .populate({
         path: "reviews",
         select: "rating title comment user images helpful unhelpful",
@@ -205,7 +205,7 @@ const getProductsByCategory = async (req, res, next) => {
     const sort = buildSort(req.query);
 
     const products = await Product.find({ category })
-      .populate("category", "name slug")
+      .populate("category", "name slug subcategories")
       .sort(sort)
       .skip(skip)
       .limit(limit);

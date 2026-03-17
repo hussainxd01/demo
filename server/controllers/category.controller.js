@@ -240,6 +240,7 @@ exports.getCategoryStats = async (req, res) => {
           name: 1,
           slug: 1,
           isActive: 1,
+          subcategories: 1,
           productCount: { $size: "$products" },
         },
       },

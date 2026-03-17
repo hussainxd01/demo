@@ -11,9 +11,15 @@ const categoryService = {
     return response?.data ?? [];
   },
 
-  // Get single category
+  // Get single category by ID
   getCategoryById: async (id) => {
     const response = await apiClient.get(`/categories/${id}`);
+    return unwrap(response);
+  },
+
+  // Get single category by slug
+  getCategoryBySlug: async (slug) => {
+    const response = await apiClient.get(`/categories/slug/${slug}`);
     return unwrap(response);
   },
 
