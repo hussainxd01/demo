@@ -29,6 +29,12 @@ const createOrder = async (req, res, next) => {
 
     // Check stock availability
     for (const item of cart.items) {
+      if (!item.product) {
+        throw new AppError(
+          "One or more products in your cart no longer exist",
+          400,
+        );
+      }
       if (item.product.stock < item.quantity) {
         throw new AppError(`Insufficient stock for ${item.product.name}`, 400);
       }
