@@ -61,6 +61,24 @@ const authValidation = {
   refreshToken: Joi.object({
     refreshToken: JoiSanitized.string().required(),
   }).unknown(false),
+
+  forgotPassword: Joi.object({
+    email: JoiSanitized.string().email().required().lowercase(),
+  }).unknown(false),
+
+  resetPassword: Joi.object({
+    email: JoiSanitized.string().email().required().lowercase(),
+    otp: Joi.string().length(6).required(),
+    newPassword: JoiSanitized.string()
+      .required()
+      .min(8)
+      .pattern(passwordPattern)
+      .messages({
+        "string.min": "Password must be at least 8 characters",
+        "string.pattern.base":
+          "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+      }),
+  }).unknown(false),
 };
 
 const productValidation = {

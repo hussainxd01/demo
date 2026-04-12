@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Heart, Plus } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 
@@ -33,12 +34,12 @@ export default function ProductCard({ product, onAddClick }) {
       <div className="group cursor-pointer">
         {/* Image Container */}
         <div className="relative bg-gray-200 rounded overflow-hidden aspect-square mb-4">
-          <img
+          <Image
             src={productImage}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            loading="lazy"
-            crossOrigin="anonymous"
+            fill
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
 
           {/* Discount Badge */}

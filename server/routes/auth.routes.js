@@ -39,4 +39,18 @@ router.get('/me', protect, authController.getCurrentUser);
  */
 router.post('/logout', protect, authController.logout);
 
+/**
+ * @route   POST /api/v1/auth/forgot-password
+ * @desc    Send password reset email
+ * @access  Public
+ */
+router.post('/forgot-password', validate(authValidation.forgotPassword), authController.forgotPassword);
+
+/**
+ * @route   POST /api/v1/auth/reset-password
+ * @desc    Reset password
+ * @access  Public
+ */
+router.post('/reset-password', validate(authValidation.resetPassword), authController.resetPassword);
+
 module.exports = router;

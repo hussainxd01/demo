@@ -49,6 +49,8 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    resetPasswordOtp: String,
+    resetPasswordOtpExpire: Date,
     wishlist: [
       {
         type: mongoose.Schema.Types.ObjectId,

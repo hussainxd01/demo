@@ -35,8 +35,8 @@ const authService = {
     return apiClient.post("/auth/forgot-password", { email });
   },
 
-  async resetPassword(token, password) {
-    return apiClient.post("/auth/reset-password", { token, password });
+  async resetPassword(email, otp, newPassword) {
+    return apiClient.post("/auth/reset-password", { email, otp, newPassword });
   },
 
   async getCurrentUser() {

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import ProductGrid from "@/components/products/ProductGrid";
 import { getProducts } from "@/lib/api";
 
@@ -30,10 +31,13 @@ export default function Home() {
       <section className="relative w-full h-96 md:h-screen bg-gradient-to-b from-gray-100 to-white overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
-          <img
+          <Image
             src="/main.jpg"
-            alt="Hero"
-            className="w-full h-full object-cover opacity-40"
+            alt="Charmsvilla Horizon Showcase"
+            fill
+            sizes="100vw"
+            priority
+            className="object-cover opacity-40"
           />
         </div>
 

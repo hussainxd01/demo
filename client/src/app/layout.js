@@ -13,9 +13,26 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Luxury Beauty Store",
-  description: "Curated beauty and skincare products",
-  generator: "v0.app",
+  title: {
+    default: "Charmsvilla | Luxury Beauty Store",
+    template: "%s | Charmsvilla",
+  },
+  description: "Premium curated beauty, skincare, and luxury cosmetic products.",
+  openGraph: {
+    title: "Charmsvilla | Luxury Beauty Store",
+    description: "Premium curated beauty, skincare, and luxury cosmetic products.",
+    siteName: "Charmsvilla",
+    images: [
+      {
+        url: "/main.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Charmsvilla Product Showcase",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
   icons: {
     icon: [
       {
