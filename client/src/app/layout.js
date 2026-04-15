@@ -2,10 +2,11 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ShopProvider } from "@/context/ShopContext";
 import { AuthProvider } from "@/context/AuthContext";
-import Header from "@/components/layout/Header";
+import Navbar from "@/components/layout/Navbar";
 import Navigation from "@/components/layout/Navigation";
 import SearchModal from "@/components/layout/SearchModal";
 import Cart from "@/components/layout/Cart";
+import Footer from "@/components/layout/Footer";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import Toast from "@/components/common/Toast";
 
@@ -59,11 +60,12 @@ export default function RootLayout({ children }) {
         {/* <ErrorBoundary> */}
         <AuthProvider>
           <ShopProvider>
-            <Header />
+            <Navbar />
             <Navigation />
             <SearchModal />
             <Cart />
             <main>{children}</main>
+            <Footer />
             <Toast />
           </ShopProvider>
         </AuthProvider>
