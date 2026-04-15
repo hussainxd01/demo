@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Menu, Search, Heart, ShoppingCart, LogOut } from "lucide-react";
@@ -15,68 +15,92 @@ export default function Header() {
   const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
+  // 🔥 NEW: scroll state
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <>
       {/* Top Banner */}
-      <div className="bg-amber-50 text-center py-2 text-sm font-medium text-gray-800">
-        Save up to 20% with code LOVEGIFT
-      </div>
 
       {/* Main Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-200">
+      <header
+        className={`z-40 transition-all duration-300 border-b-white/50 border-[0.5px]  ${
+          isScrolled
+            ? "sticky top-0 bg-white border-b border-gray-200 shadow-sm"
+            : "absolute top-0 left-0 w-full bg-transparent border-b border-transparent"
+        }`}
+      >
         <div className="flex items-center justify-between px-4 py-4 md:px-6">
           {/* Left: Menu Icon */}
           <button
             onClick={openMenu}
-            className="flex md:hidden text-gray-800 hover:text-gray-600 transition-colors"
+            className={`flex md:hidden transition-colors ${
+              isScrolled ? "text-gray-800" : "text-white"
+            }`}
             aria-label="Open menu"
           >
             <Menu size={24} />
           </button>
 
-          {/* Center/Logo */}
-          <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0">
-            <Link href="/" className="text-center">
-              <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-800 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">✦</span>
-              </div>
-              <span className="sr-only">Home</span>
-            </Link>
-          </div>
-
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8 flex-1 justify-center text-sm font-medium text-gray-800">
-            <Link href="/" className="hover:text-gray-600 transition-colors">
+          <nav
+            className={`hidden md:flex items-center gap-8  justify-center text-sm font-medium transition-colors ${
+              isScrolled ? "text-gray-800" : "text-white"
+            }`}
+          >
+            <Link href="/" className="hover:opacity-70 transition">
               HOME
             </Link>
-            <Link
-              href="/category/men"
-              className="hover:text-gray-600 transition-colors"
-            >
+            <Link href="/category/men" className="hover:opacity-70 transition">
               MEN
             </Link>
             <Link
               href="/category/women"
-              className="hover:text-gray-600 transition-colors"
+              className="hover:opacity-70 transition"
             >
               WOMEN
             </Link>
             <Link
               href="/category/bestseller"
-              className="hover:text-gray-600 transition-colors"
+              className="hover:opacity-70 transition"
             >
               BEST SELLER
             </Link>
           </nav>
+
+          <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0">
+            <Link href="/" className="text-center">
+              <span
+                className={`font-bold text-lg uppercase ${
+                  isScrolled ? "text-black" : "text-white"
+                }`}
+              >
+                Charmsvilla
+              </span>
+
+              <span className="sr-only">Home</span>
+            </Link>
+          </div>
 
           {/* Right: Action Icons */}
           <div className="flex items-center gap-4">
             {/* Search Icon */}
             <button
               onClick={openSearch}
-              className="text-gray-800 hover:text-gray-600 transition-colors"
+              className={`transition-colors ${
+                isScrolled ? "text-gray-800" : "text-white"
+              }`}
               aria-label="Open search"
             >
               <Search size={24} />
@@ -85,7 +109,9 @@ export default function Header() {
             {/* Favorites Icon */}
             <Link
               href="/account/favorites"
-              className="text-gray-800 hover:text-gray-600 transition-colors relative"
+              className={`transition-colors relative ${
+                isScrolled ? "text-gray-800" : "text-white"
+              }`}
               aria-label="View favorites"
             >
               <Heart size={24} />
@@ -99,7 +125,9 @@ export default function Header() {
             {/* Cart Icon */}
             <button
               onClick={openCart}
-              className="text-gray-800 hover:text-gray-600 transition-colors relative"
+              className={`transition-colors relative ${
+                isScrolled ? "text-gray-800" : "text-white"
+              }`}
               aria-label="Open cart"
             >
               <ShoppingCart size={24} />
@@ -117,7 +145,9 @@ export default function Header() {
                   {isAuthenticated && user ? (
                     <button
                       onClick={() => setIsProfileOpen(!isProfileOpen)}
-                      className="text-gray-800 hover:text-gray-600 transition-colors cursor-pointer"
+                      className={`transition-colors ${
+                        isScrolled ? "text-gray-800" : "text-white"
+                      }`}
                       aria-label="User account"
                     >
                       <UserIcon size={24} />
@@ -125,7 +155,9 @@ export default function Header() {
                   ) : (
                     <Link
                       href="/auth/login"
-                      className="text-gray-800 hover:text-gray-600 transition-colors text-sm font-medium uppercase"
+                      className={`text-sm font-medium uppercase transition-colors ${
+                        isScrolled ? "text-gray-800" : "text-white"
+                      }`}
                     >
                       Login
                     </Link>

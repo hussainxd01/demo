@@ -28,16 +28,16 @@ export default function Home() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative w-full h-96 md:h-screen bg-gradient-to-b from-gray-100 to-white overflow-hidden">
+      <section className="relative w-full h-96 md:h-screen  overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
-            src="/main.jpg"
+            src="/model.png"
             alt="Charmsvilla Horizon Showcase"
             fill
             sizes="100vw"
             priority
-            className="object-cover opacity-40"
+            className="object-cover "
           />
         </div>
 
@@ -59,45 +59,6 @@ export default function Home() {
               VIEW COLLECTION
             </Link>
           </div>
-        </div>
-      </section>
-
-      {/* Featured Categories Section */}
-      <section className="py-12 md:py-16 px-4 md:px-6 max-w-7xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
-          Why Be Yours?
-        </h2>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-          {/* Feature Cards */}
-          {[
-            {
-              icon: "🍃",
-              title: "Clean Skincare",
-              desc: "Clean and natural skincare with safe and transparent ingredients",
-            },
-            {
-              icon: "🌍",
-              title: "European Made",
-              desc: "Fast delivery options, tracking your order and more.",
-            },
-            {
-              icon: "✓",
-              title: "Luxury Quality",
-              desc: "Premium formulations crafted with the finest ingredients.",
-            },
-          ].map((feature, index) => (
-            <div
-              key={index}
-              className="p-6 md:p-8 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
-            >
-              <p className="text-3xl mb-3">{feature.icon}</p>
-              <h3 className="font-semibold text-gray-900 mb-2">
-                {feature.title}
-              </h3>
-              <p className="text-sm text-gray-600">{feature.desc}</p>
-            </div>
-          ))}
         </div>
       </section>
 
@@ -123,33 +84,6 @@ export default function Home() {
           >
             VIEW ALL PRODUCTS
           </Link>
-        </div>
-      </section>
-
-      {/* Newsletter Section */}
-      <section className="py-16 px-4 md:px-6 bg-gray-900 text-white">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Stay in the Loop
-          </h2>
-          <p className="text-gray-300 mb-8">
-            Get exclusive offers and new product launches delivered to your
-            inbox.
-          </p>
-          <form className="flex flex-col md:flex-row gap-2">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded text-gray-900 focus:outline-none"
-              required
-            />
-            <button
-              type="submit"
-              className="px-8 py-3 bg-yellow-300 text-gray-900 font-semibold rounded hover:bg-yellow-400 transition-colors"
-            >
-              SUBSCRIBE
-            </button>
-          </form>
         </div>
       </section>
 

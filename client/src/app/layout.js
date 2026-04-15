@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import { ShopProvider } from "@/context/ShopContext";
 import { AuthProvider } from "@/context/AuthContext";
@@ -9,18 +9,24 @@ import Cart from "@/components/layout/Cart";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import Toast from "@/components/common/Toast";
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+// ✅ Poppins setup
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+});
 
 export const metadata = {
   title: {
     default: "Charmsvilla | Luxury Beauty Store",
     template: "%s | Charmsvilla",
   },
-  description: "Premium curated beauty, skincare, and luxury cosmetic products.",
+  description:
+    "Premium curated beauty, skincare, and luxury cosmetic products.",
   openGraph: {
     title: "Charmsvilla | Luxury Beauty Store",
-    description: "Premium curated beauty, skincare, and luxury cosmetic products.",
+    description:
+      "Premium curated beauty, skincare, and luxury cosmetic products.",
     siteName: "Charmsvilla",
     images: [
       {
@@ -55,7 +61,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased bg-white">
+      <body className={`${poppins.className} antialiased bg-white`}>
         {/* <ErrorBoundary> */}
         <AuthProvider>
           <ShopProvider>
