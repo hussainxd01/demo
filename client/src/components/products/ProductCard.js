@@ -1,9 +1,8 @@
 "use client";
-
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Heart, Plus } from "lucide-react";
+import { Heart } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 
 export default function ProductCard({ product, onAddClick }) {
@@ -30,116 +29,107 @@ export default function ProductCard({ product, onAddClick }) {
     : 0;
 
   return (
-    <Link href={`/product/${productId}`}>
-      <div className="group cursor-pointer">
-        {/* Image Container */}
-        <div className="relative bg-gray-200 rounded overflow-hidden aspect-square mb-4">
-          <Image
-            src={productImage}
-            alt={product.name}
-            fill
-            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
+    <Link href={`/product/${productId}`} className="group block">
+      {/* Fixed-ratio image container — always 3:4 portrait, like H&M/Zara */}
+      <div
+        className="relative w-full overflow-hidden bg-[#f0eeeb]"
+        style={{ aspectRatio: "3/4" }}
+      >
+        <Image
+          src={productImage}
+          alt={product.name}
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-103"
+        />
+
+        {/* Discount Badge — top left, editorial style */}
+        {discount > 0 && (
+          <span className="absolute top-3 left-3 bg-[#c8102e] text-white text-[10px] font-bold tracking-widest uppercase px-2 py-0.5">
+            -{discount}%
+          </span>
+        )}
+
+        {/* Favorite */}
+        <button
+          onClick={handleFavorite}
+          className="absolute top-3 right-3 z-10"
+          aria-label={
+            isFavorited ? "Remove from favorites" : "Add to favorites"
+          }
+        >
+          <Heart
+            size={18}
+            strokeWidth={1.5}
+            className={`transition-all duration-200 ${
+              isFavorited
+                ? "fill-black text-black"
+                : "text-black/40 hover:text-black"
+            }`}
           />
+        </button>
 
-          {/* Discount Badge */}
-          {discount > 0 && (
-            <div className="absolute top-3 right-3 bg-yellow-300 text-gray-900 px-2 py-1 rounded text-xs font-bold">
-              -{discount}%
-            </div>
-          )}
+        {/* Quick Add — slides up on hover, Zara-style */}
+        <button
+          onClick={handleAddToCart}
+          className="absolute bottom-0 left-0 right-0 bg-white/95 text-[11px] font-bold tracking-[0.2em] uppercase text-gray-900 py-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"
+          aria-label={`Add ${product.name} to cart`}
+        >
+          Quick Add
+        </button>
+      </div>
 
-          {/* Favorite Button */}
-          <button
-            onClick={handleFavorite}
-            className="absolute top-3 left-3 bg-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-gray-100"
-            aria-label={
-              isFavorited ? "Remove from favorites" : "Add to favorites"
-            }
-          >
-            <Heart
-              size={20}
-              className={`transition-colors ${
-                isFavorited ? "fill-red-500 text-red-500" : "text-gray-600"
-              }`}
-            />
-          </button>
-
-          {/* Zoom Icon */}
-          <div className="absolute bottom-3 right-3 bg-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <svg
-              className="w-5 h-5 text-gray-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
-        </div>
-
-        {/* Product Info */}
-        <div className="space-y-1">
-          <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">
+      {/* Product Info — tight, editorial */}
+      <div className="mt-3 space-y-0.5 px-0.5">
+        {product.brand && (
+          <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-gray-400">
             {product.brand}
           </p>
-          <h3 className="font-medium text-gray-800 line-clamp-2 group-hover:text-gray-600 transition-colors">
-            {product.name}
-          </h3>
+        )}
+        <h3 className="text-[13px] font-medium text-gray-900 leading-snug line-clamp-1">
+          {product.name}
+        </h3>
 
-          {/* Rating */}
-          {product.rating && (
-            <div className="flex items-center gap-1 mt-2">
-              <div className="flex gap-0.5">
-                {[...Array(5)].map((_, i) => (
-                  <span
-                    key={i}
-                    className={`text-lg ${
-                      i < Math.floor(product.rating)
-                        ? "text-yellow-400"
-                        : "text-gray-300"
-                    }`}
-                  >
-                    ★
-                  </span>
-                ))}
-              </div>
-              <span className="text-xs text-gray-600">
-                ({product.reviewCount || product.reviews || 0})
-              </span>
-            </div>
-          )}
-
-          {/* Price */}
-          <div className="flex items-baseline gap-2 mt-3">
-            <span className="font-semibold text-gray-900">
-              Rs. {Number(product.price || 0).toFixed(2)}
+        {/* Price row */}
+        <div className="flex items-center gap-2 pt-1">
+          <span className="text-[13px] font-semibold text-gray-900">
+            Rs.{" "}
+            {Number(product.price || 0).toLocaleString("en-IN", {
+              minimumFractionDigits: 2,
+            })}
+          </span>
+          {product.originalPrice && product.originalPrice > product.price && (
+            <span className="text-[12px] text-gray-400 line-through">
+              Rs.{" "}
+              {product.originalPrice.toLocaleString("en-IN", {
+                minimumFractionDigits: 2,
+              })}
             </span>
-            {product.originalPrice && product.originalPrice > product.price && (
-              <span className="text-sm text-gray-500 line-through">
-                Rs. {product.originalPrice.toFixed(2)}
-              </span>
-            )}
-          </div>
-
-          {/* Add to Cart Button */}
-          <button
-            onClick={handleAddToCart}
-            className="w-full mt-4 bg-white border-2 border-gray-800 text-gray-800 font-semibold py-2 rounded hover:bg-gray-800 hover:text-white transition-colors flex items-center justify-center gap-2 group/btn"
-            aria-label={`Add ${product.name} to cart`}
-          >
-            <Plus
-              size={18}
-              className="group-hover/btn:rotate-90 transition-transform"
-            />
-            ADD
-          </button>
+          )}
         </div>
+
+        {/* Rating — tiny, minimal */}
+        {product.rating && (
+          <div className="flex items-center gap-1 pt-0.5">
+            <div className="flex gap-px">
+              {[...Array(5)].map((_, i) => (
+                <span
+                  key={i}
+                  className={`text-[10px] leading-none ${
+                    i < Math.floor(product.rating)
+                      ? "text-gray-800"
+                      : "text-gray-300"
+                  }`}
+                >
+                  ★
+                </span>
+              ))}
+            </div>
+            <span className="text-[10px] text-gray-400">
+              ({product.reviewCount || product.reviews || 0})
+            </span>
+          </div>
+        )}
       </div>
     </Link>
   );

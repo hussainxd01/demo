@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Menu, Search, Heart, ShoppingCart, LogOut } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 import { useAuth } from "@/context/AuthContext";
@@ -13,32 +13,36 @@ export default function Header() {
     useShop();
   const { user, isAuthenticated, logout, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-
-  // 🔥 NEW: scroll state
   const [isScrolled, setIsScrolled] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
+  // Only the homepage gets the transparent treatment
+  const isHomePage = pathname === "/";
 
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Reset scroll state on route change so other pages always start solid
+  useEffect(() => {
+    setIsScrolled(window.scrollY > 10);
+  }, [pathname]);
+
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Transparent only on homepage before scroll
+  const isTransparent = isHomePage && !isScrolled;
 
   return (
     <>
-      {/* Top Banner */}
-
-      {/* Main Header */}
       <header
-        className={`z-40 transition-all duration-300 border-b-white/50 border-[0.5px]  ${
-          isScrolled
-            ? "sticky top-0 bg-white border-b border-gray-200 shadow-sm"
-            : "absolute top-0 left-0 w-full bg-transparent border-b border-transparent"
+        className={`z-40 transition-all duration-300 ${
+          isTransparent
+            ? "absolute top-0 left-0 w-full bg-transparent border-b border-white/20"
+            : "sticky top-0 bg-white border-b border-gray-200 shadow-sm"
         }`}
       >
         <div className="flex items-center justify-between px-4 py-4 md:px-6">
@@ -46,7 +50,7 @@ export default function Header() {
           <button
             onClick={openMenu}
             className={`flex md:hidden transition-colors ${
-              isScrolled ? "text-gray-800" : "text-white"
+              isTransparent ? "text-white" : "text-gray-800"
             }`}
             aria-label="Open menu"
           >
@@ -55,8 +59,8 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav
-            className={`hidden md:flex items-center gap-8  justify-center text-sm font-medium transition-colors ${
-              isScrolled ? "text-gray-800" : "text-white"
+            className={`hidden md:flex items-center gap-8 justify-center text-sm font-medium transition-colors ${
+              isTransparent ? "text-white" : "text-gray-800"
             }`}
           >
             <Link href="/" className="hover:opacity-70 transition">
@@ -79,38 +83,36 @@ export default function Header() {
             </Link>
           </nav>
 
+          {/* Logo */}
           <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0">
             <Link href="/" className="text-center">
               <span
-                className={`font-bold text-lg uppercase ${
-                  isScrolled ? "text-black" : "text-white"
+                className={`font-bold text-lg uppercase transition-colors ${
+                  isTransparent ? "text-white" : "text-black"
                 }`}
               >
                 Charmsvilla
               </span>
-
               <span className="sr-only">Home</span>
             </Link>
           </div>
 
           {/* Right: Action Icons */}
           <div className="flex items-center gap-4">
-            {/* Search Icon */}
             <button
               onClick={openSearch}
               className={`transition-colors ${
-                isScrolled ? "text-gray-800" : "text-white"
+                isTransparent ? "text-white" : "text-gray-800"
               }`}
               aria-label="Open search"
             >
               <Search size={24} />
             </button>
 
-            {/* Favorites Icon */}
             <Link
               href="/account/favorites"
               className={`transition-colors relative ${
-                isScrolled ? "text-gray-800" : "text-white"
+                isTransparent ? "text-white" : "text-gray-800"
               }`}
               aria-label="View favorites"
             >
@@ -122,11 +124,10 @@ export default function Header() {
               )}
             </Link>
 
-            {/* Cart Icon */}
             <button
               onClick={openCart}
               className={`transition-colors relative ${
-                isScrolled ? "text-gray-800" : "text-white"
+                isTransparent ? "text-white" : "text-gray-800"
               }`}
               aria-label="Open cart"
             >
@@ -138,7 +139,6 @@ export default function Header() {
               )}
             </button>
 
-            {/* User Account / Login */}
             <div className="relative">
               {!isLoading && (
                 <>
@@ -146,7 +146,7 @@ export default function Header() {
                     <button
                       onClick={() => setIsProfileOpen(!isProfileOpen)}
                       className={`transition-colors ${
-                        isScrolled ? "text-gray-800" : "text-white"
+                        isTransparent ? "text-white" : "text-gray-800"
                       }`}
                       aria-label="User account"
                     >
@@ -156,14 +156,13 @@ export default function Header() {
                     <Link
                       href="/auth/login"
                       className={`text-sm font-medium uppercase transition-colors ${
-                        isScrolled ? "text-gray-800" : "text-white"
+                        isTransparent ? "text-white" : "text-gray-800"
                       }`}
                     >
                       Login
                     </Link>
                   )}
 
-                  {/* Profile Dropdown */}
                   {isAuthenticated && isProfileOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 animate-fade-in cursor-pointer">
                       <div className="px-4 py-3 border-b border-gray-100">

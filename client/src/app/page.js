@@ -5,6 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import ProductGrid from "@/components/products/ProductGrid";
 import { getProducts } from "@/lib/api";
+import JustArrived from "@/components/just-arrived";
+import { playfair } from "@/lib/fonts/font";
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -28,33 +30,38 @@ export default function Home() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative w-full h-96 md:h-screen  overflow-hidden">
+      <section className="relative w-full h-dvh md:h-screen  overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
-            src="/model.png"
+            src="/hola.png"
             alt="Charmsvilla Horizon Showcase"
             fill
             sizes="100vw"
             priority
-            className="object-cover "
+            className="object-cover object-[center_top] md:object-[center_20%]"
           />
         </div>
 
         {/* Content */}
         <div className="relative h-full flex flex-col items-center justify-center px-4 text-center">
           <div className="max-w-2xl">
-            <p className="text-sm md:text-base text-gray-600 uppercase tracking-widest mb-4">
-              UPNEXT
+            <p className="text-sm md:text-base text-white uppercase tracking-widest mb-4">
+              UPNEXT 2026
             </p>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600">
-                On the Horizon
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-semibold mb-6 leading-tight">
+              <span className="text-white">
+                On the{" "}
+                <span
+                  className={`${playfair.className} italic lowercase tracking-tight inline-block font-extralight skew-x-[-6deg]`}
+                >
+                  horizon
+                </span>
               </span>
             </h1>
             <Link
               href="/products"
-              className="inline-block px-8 py-3 md:py-4 bg-white text-gray-800 font-semibold rounded hover:bg-gray-100 transition-colors"
+              className="inline-block px-8 py-3 md:py-4 bg-transparent border-white border  text-white font-semibold rounded-full hover:bg-gray-100 hover:text-gray-900 transition-colors text-sm"
             >
               VIEW COLLECTION
             </Link>
@@ -85,6 +92,9 @@ export default function Home() {
             VIEW ALL PRODUCTS
           </Link>
         </div>
+      </section>
+      <section>
+        <JustArrived />
       </section>
 
       {/* Footer */}
