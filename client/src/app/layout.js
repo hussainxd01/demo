@@ -1,4 +1,3 @@
-import { Poppins } from "next/font/google";
 import "./globals.css";
 import { ShopProvider } from "@/context/ShopContext";
 import { AuthProvider } from "@/context/AuthContext";
@@ -8,13 +7,6 @@ import SearchModal from "@/components/layout/SearchModal";
 import Cart from "@/components/layout/Cart";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import Toast from "@/components/common/Toast";
-
-// ✅ Poppins setup
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
-});
 
 export const metadata = {
   title: {
@@ -61,7 +53,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${poppins.className} antialiased bg-white`}>
+      <body className={`antialiased bg-white`}>
         {/* <ErrorBoundary> */}
         <AuthProvider>
           <ShopProvider>

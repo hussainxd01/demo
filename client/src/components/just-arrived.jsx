@@ -6,7 +6,7 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 import { getProducts } from "@/lib/api";
-
+import { playfair } from "@/lib/fonts/font";
 const CARD_WIDTH = 260;
 const PRODUCTS_LIMIT = 10;
 
@@ -94,14 +94,16 @@ export default function JustArrived() {
   if (!products.length) return null;
 
   return (
-    <section className="py-12 px-4 md:px-10">
+    <section className="py-12 px-4 md:px-14">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <h2
-          className="text-3xl md:text-4xl font-light text-gray-900 tracking-tight"
-          style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
-        >
-          Just arrived
+        <h2 className="text-3xl md:text-4xl font-light text-gray-900 tracking-tight">
+          Just{" "}
+          <span
+            className={`${playfair.className} italic  tracking-tight inline-block font-extralight skew-x-[-6deg]`}
+          >
+            Arrived
+          </span>
         </h2>
 
         <div className="flex items-center gap-6">

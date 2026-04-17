@@ -109,7 +109,7 @@ export default function ProductCard({ product, onAddClick }) {
         </div>
 
         {/* Rating — tiny, minimal */}
-        {product.rating && (
+        {product.rating > 0 && (
           <div className="flex items-center gap-1 pt-0.5">
             <div className="flex gap-px">
               {[...Array(5)].map((_, i) => (
@@ -117,7 +117,7 @@ export default function ProductCard({ product, onAddClick }) {
                   key={i}
                   className={`text-[10px] leading-none ${
                     i < Math.floor(product.rating)
-                      ? "text-gray-800"
+                      ? "text-gray-700"
                       : "text-gray-300"
                   }`}
                 >
@@ -125,9 +125,13 @@ export default function ProductCard({ product, onAddClick }) {
                 </span>
               ))}
             </div>
-            <span className="text-[10px] text-gray-400">
-              ({product.reviewCount || product.reviews || 0})
-            </span>
+
+            {/* Only show count if > 0 */}
+            {product.reviewCount > 0 && (
+              <span className="text-[10px] text-gray-400">
+                {product.reviewCount}
+              </span>
+            )}
           </div>
         )}
       </div>

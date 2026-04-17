@@ -59,7 +59,7 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav
-            className={`hidden md:flex items-center gap-8 justify-center text-sm font-medium transition-colors ${
+            className={`hidden md:flex items-center gap-8 justify-center text-xs font-semibold font-medium transition-colors ${
               isTransparent ? "text-white" : "text-gray-800"
             }`}
           >
