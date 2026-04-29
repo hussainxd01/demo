@@ -26,9 +26,9 @@ export default function Footer() {
     ],
     pages: [
       { label: "FAQ", href: "#" },
-      { label: "Blog", href: "#" },
+      { label: "Blog", href: "/blog" },
+      { label: "About", href: "/about" },
       { label: "Lookbook", href: "#" },
-      { label: "Collections", href: "#" },
     ],
     shop: [
       { label: "Tops", href: "/products?category=tops" },

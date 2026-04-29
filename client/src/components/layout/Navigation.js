@@ -91,6 +91,17 @@ export default function Navigation() {
               </Link>
             </div>
 
+            {/* About Section */}
+            <div className="border-b border-gray-200">
+              <Link
+                href="/about"
+                className="w-full block px-4 py-4 text-left font-medium text-gray-800 hover:bg-gray-50 transition-colors"
+                onClick={closeMenu}
+              >
+                ABOUT US
+              </Link>
+            </div>
+
             {/* Brands Section */}
             <div className="border-b border-gray-200">
               <button
