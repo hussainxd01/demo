@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Menu, Search, Heart, ShoppingCart, LogOut } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 import { useAuth } from "@/context/AuthContext";
 import UserIcon from "@/components/common/UserIcon";
@@ -54,7 +54,7 @@ export default function Header() {
             }`}
             aria-label="Open menu"
           >
-            <Menu size={24} />
+            <Menu size={24} strokeWidth={1.5} />
           </button>
 
           {/* Desktop Navigation */}
@@ -99,24 +99,49 @@ export default function Header() {
 
           {/* Right: Action Icons */}
           <div className="flex items-center gap-4">
+            {/* Search - Desktop Only */}
             <button
               onClick={openSearch}
-              className={`transition-colors ${
+              className={`hidden md:block transition-colors ${
                 isTransparent ? "text-white" : "text-gray-800"
               }`}
               aria-label="Open search"
             >
-              <Search size={24} />
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
             </button>
 
+            {/* Favorites - Desktop Only */}
             <Link
               href="/account/favorites"
-              className={`transition-colors relative ${
+              className={`hidden md:block transition-colors relative ${
                 isTransparent ? "text-white" : "text-gray-800"
               }`}
               aria-label="View favorites"
             >
-              <Heart size={24} />
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
               {favorites.length > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {favorites.length}
@@ -124,14 +149,34 @@ export default function Header() {
               )}
             </Link>
 
+            {/* Cart - Always Visible */}
             <button
-              onClick={openCart}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  router.push("/auth/login");
+                } else {
+                  openCart();
+                }
+              }}
               className={`transition-colors relative ${
                 isTransparent ? "text-white" : "text-gray-800"
               }`}
               aria-label="Open cart"
             >
-              <ShoppingCart size={24} />
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="9" cy="21" r="1" />
+                <circle cx="20" cy="21" r="1" />
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+              </svg>
               {cartCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-amber-400 text-gray-800 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                   {cartCount}
@@ -155,11 +200,24 @@ export default function Header() {
                   ) : (
                     <Link
                       href="/auth/login"
-                      className={`text-sm font-medium uppercase transition-colors ${
+                      className={`transition-colors ${
                         isTransparent ? "text-white" : "text-gray-800"
                       }`}
+                      aria-label="Login"
                     >
-                      Login
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
                     </Link>
                   )}
 
