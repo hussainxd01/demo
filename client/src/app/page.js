@@ -76,41 +76,37 @@ export default function Home() {
         id="products"
         className="py-12 md:py-20 px-4 md:px-14 w-full mx-auto"
       >
-        <div className="mb-14 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
-              Our Latest{" "}
-              <span
-                className={`${playfair.className} italic tracking-tight inline-block font-extralight skew-x-[-6deg] text-2xl sm:text-3xl md:text-4xl`}
-              >
-                Collection
-              </span>
-            </h2>
-          </div>
-          <div className="text-center">
-            <Link
-              href="/products"
-              className=" text-gray-800 font-semibold text-sm flex gap-2 items-center "
+        <div className="mb-14 flex items-end justify-between gap-4">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
+            Our Latest{" "}
+            <span
+              className={`${playfair.className} italic tracking-tight inline-block font-extralight skew-x-[-6deg] text-2xl sm:text-3xl md:text-4xl`}
             >
-              <span className="hover:underline underline-offset-4">
-                VIEW ALL PRODUCTS
-              </span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="size-5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-                />
-              </svg>
-            </Link>
-          </div>
+              Collection
+            </span>
+          </h2>
+          <Link
+            href="/products"
+            className="text-gray-800 font-medium text-xs sm:text-sm flex gap-2 items-center whitespace-nowrap"
+          >
+            <span className="hover:underline underline-offset-4">
+              VIEW ALL
+            </span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="size-4 sm:size-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+              />
+            </svg>
+          </Link>
         </div>
 
         <ProductGrid products={products} isLoading={isLoading} />
