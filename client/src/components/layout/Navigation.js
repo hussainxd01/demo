@@ -2,12 +2,12 @@
 
 import React from "react";
 import Link from "next/link";
-import { X, ChevronRight } from "lucide-react";
+import { X, ChevronRight, Search, Heart } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 import { getBrands, getCategories } from "@/lib/api";
 
 export default function Navigation() {
-  const { isMenuOpen, closeMenu } = useShop();
+  const { isMenuOpen, closeMenu, openSearch } = useShop();
   const [expandedMenu, setExpandedMenu] = React.useState(null);
   const [brands, setBrands] = React.useState([]);
   const [categories, setCategories] = React.useState([]);
@@ -65,6 +65,32 @@ export default function Navigation() {
 
           {/* Menu Content */}
           <div className="flex-1 overflow-y-auto">
+            {/* Search Section */}
+            <div className="border-b border-gray-200">
+              <button
+                onClick={() => {
+                  openSearch();
+                  closeMenu();
+                }}
+                className="w-full flex items-center gap-3 px-4 py-4 text-left font-medium text-gray-800 hover:bg-gray-50 transition-colors"
+              >
+                <Search size={20} />
+                SEARCH
+              </button>
+            </div>
+
+            {/* Wishlist Section */}
+            <div className="border-b border-gray-200">
+              <Link
+                href="/account/favorites"
+                className="w-full flex items-center gap-3 px-4 py-4 text-left font-medium text-gray-800 hover:bg-gray-50 transition-colors"
+                onClick={closeMenu}
+              >
+                <Heart size={20} />
+                FAVORITES
+              </Link>
+            </div>
+
             {/* Brands Section */}
             <div className="border-b border-gray-200">
               <button

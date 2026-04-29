@@ -99,9 +99,10 @@ export default function Header() {
 
           {/* Right: Action Icons */}
           <div className="flex items-center gap-4">
+            {/* Search - Desktop Only */}
             <button
               onClick={openSearch}
-              className={`transition-colors ${
+              className={`hidden md:block transition-colors ${
                 isTransparent ? "text-white" : "text-gray-800"
               }`}
               aria-label="Open search"
@@ -109,9 +110,10 @@ export default function Header() {
               <Search size={24} />
             </button>
 
+            {/* Favorites - Desktop Only */}
             <Link
               href="/account/favorites"
-              className={`transition-colors relative ${
+              className={`hidden md:block transition-colors relative ${
                 isTransparent ? "text-white" : "text-gray-800"
               }`}
               aria-label="View favorites"
@@ -124,8 +126,15 @@ export default function Header() {
               )}
             </Link>
 
+            {/* Cart - Always Visible */}
             <button
-              onClick={openCart}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  router.push("/auth/login");
+                } else {
+                  openCart();
+                }
+              }}
               className={`transition-colors relative ${
                 isTransparent ? "text-white" : "text-gray-800"
               }`}
