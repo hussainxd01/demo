@@ -48,10 +48,10 @@ export default function Home() {
         {/* Content */}
         <div className="relative h-full flex flex-col items-center justify-center px-4 text-center">
           <div className="max-w-2xl">
-            <p className="text-sm md:text-base text-white uppercase tracking-widest mb-4">
+            <p className="text-xs sm:text-sm md:text-base text-white uppercase tracking-widest mb-4">
               UPNEXT 2026
             </p>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-semibold mb-6 leading-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-6xl lg:text-7xl font-semibold mb-6 leading-tight">
               <span className="text-white">
                 On the{" "}
                 <span
@@ -63,7 +63,7 @@ export default function Home() {
             </h1>
             <Link
               href="/products"
-              className="inline-block px-8 py-3 md:py-4 bg-transparent border-white border  text-white font-semibold rounded-full hover:bg-gray-100 hover:text-gray-900 transition-colors text-sm"
+              className="inline-block px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 bg-transparent border-white border text-white font-semibold rounded-full hover:bg-gray-100 hover:text-gray-900 transition-colors text-xs sm:text-sm"
             >
               VIEW COLLECTION
             </Link>
@@ -76,12 +76,12 @@ export default function Home() {
         id="products"
         className="py-12 md:py-20 px-4 md:px-14 w-full mx-auto"
       >
-        <div className="mb-14 flex justify-between items-center">
+        <div className="mb-14 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
               Our Latest{" "}
               <span
-                className={`${playfair.className} italic  tracking-tight inline-block font-extralight skew-x-[-6deg] text-4xl`}
+                className={`${playfair.className} italic tracking-tight inline-block font-extralight skew-x-[-6deg] text-2xl sm:text-3xl md:text-4xl`}
               >
                 Collection
               </span>
