@@ -31,12 +31,8 @@ export default function Footer() {
       { label: "Lookbook", href: "#" },
     ],
     shop: [
-      { label: "Tops", href: "/products?category=tops" },
-      { label: "T-shirts", href: "/products?category=tshirts" },
-      { label: "Knitwear", href: "/products?category=knitwear" },
-      { label: "Dresses", href: "/products?category=dresses" },
-      { label: "Bottoms", href: "/products?category=bottoms" },
-      { label: "Jackets & Coats", href: "/products?category=jackets" },
+      { label: "Mens", href: "/products?category=mens" },
+      { label: "Women", href: "/products?category=women" },
     ],
   };
 
@@ -160,9 +156,9 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
           {/* Logo & Description */}
           <div className="flex-1">
-            <h2 className="text-3xl font-light mb-4">Charmsvilla</h2>
+            <h2 className="text-3xl font-light mb-4">Beyond</h2>
             <p className="text-xs text-gray-400">
-              Charmsvilla is a premium brands designed by zenvokstudio
+              Beyond is a premium brands designed by zenvokstudio
             </p>
           </div>
 

@@ -108,7 +108,7 @@ export default function Blog() {
           }`}
         >
           <h2 className={`text-4xl md:text-5xl font-light text-gray-900 mb-4`}>
-            Charmsvilla{" "}
+            Beyond{" "}
             <span
               className={`${playfair.className} italic font-extralight skew-x-[-6deg] inline-block`}
             >

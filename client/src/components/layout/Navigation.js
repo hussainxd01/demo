@@ -78,7 +78,6 @@ export default function Navigation() {
                 SEARCH
               </button>
             </div>
-
             {/* Wishlist Section */}
             <div className="border-b border-gray-200">
               <Link
@@ -90,7 +89,6 @@ export default function Navigation() {
                 FAVORITES
               </Link>
             </div>
-
             {/* About Section */}
             <div className="border-b border-gray-200">
               <Link
@@ -102,8 +100,7 @@ export default function Navigation() {
               </Link>
             </div>
 
-            {/* Brands Section */}
-            <div className="border-b border-gray-200">
+            {/* <div className="border-b border-gray-200">
               <button
                 onClick={() => handleMenuClick("brands")}
                 className="w-full flex items-center justify-between px-4 py-4 text-left font-medium text-gray-800 hover:bg-gray-50 transition-colors"
@@ -130,8 +127,7 @@ export default function Navigation() {
                   ))}
                 </div>
               )}
-            </div>
-
+            </div> */}
             {/* Categories Section */}
             {categories.map((category) => (
               <Link
@@ -143,7 +139,6 @@ export default function Navigation() {
                 {category.name}
               </Link>
             ))}
-
             {/* Explore Section */}
             <div className="border-b border-gray-200">
               <button
@@ -161,30 +156,15 @@ export default function Navigation() {
               {expandedMenu === "explore" && (
                 <div className="bg-gray-50 px-4 py-2 space-y-2">
                   <Link
-                    href="/new-arrivals"
-                    className="block py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-                    onClick={closeMenu}
-                  >
-                    New Arrivals
-                  </Link>
-                  <Link
                     href="/bestsellers"
                     className="block py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
                     onClick={closeMenu}
                   >
                     Bestsellers
                   </Link>
-                  <Link
-                    href="/sale"
-                    className="block py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-                    onClick={closeMenu}
-                  >
-                    Sale
-                  </Link>
                 </div>
               )}
             </div>
-
             {/* Our Stores Section */}
             <Link
               href="/stores"

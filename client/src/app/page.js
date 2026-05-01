@@ -37,7 +37,7 @@ export default function Home() {
         <div className="absolute inset-0">
           <Image
             src="/hola.png"
-            alt="Charmsvilla Horizon Showcase"
+            alt="Beyond Horizon Showcase"
             fill
             sizes="100vw"
             priority

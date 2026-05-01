@@ -37,7 +37,7 @@ export default function About() {
   ];
 
   const milestones = [
-    { year: "2020", event: "Charmsvilla Founded" },
+    { year: "2020", event: "Beyond Founded" },
     { year: "2021", event: "First Collection Launch" },
     { year: "2023", event: "50,000+ Happy Customers" },
     { year: "2024", event: "Expanded to Premium Beauty" },
@@ -97,7 +97,7 @@ export default function About() {
                   </span>
                 </h2>
                 <p className="text-gray-600 text-base leading-relaxed mb-4">
-                  Charmsvilla is more than just a beauty store—it's a curated
+                  Beyond is more than just a beauty store—it's a curated
                   marketplace for luxury brands that celebrate individuality and
                   self-expression. Founded with the belief that beauty should be
                   accessible, authentic, and inspiring.
@@ -124,7 +124,7 @@ export default function About() {
               >
                 <Image
                   src="/hola.png"
-                  alt="Charmsvilla Collection"
+                  alt="Beyond Collection"
                   fill
                   className="object-cover object-center hover:scale-105 transition-transform duration-500"
                 />

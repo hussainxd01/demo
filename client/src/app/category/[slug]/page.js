@@ -135,7 +135,6 @@ export default function CategoryPage({ params }) {
         <CategoryToolbar
           itemCount={filteredProducts.length}
           gridView={gridView}
-          onGridViewChange={setGridView}
           sortValue={sortValue}
           onSortChange={setSortValue}
           onFilterClick={() => setIsFilterOpen(true)}

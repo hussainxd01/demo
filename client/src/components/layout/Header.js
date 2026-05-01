@@ -42,7 +42,7 @@ export default function Header() {
         className={`z-40 transition-all duration-300 ${
           isTransparent
             ? "absolute top-0 left-0 w-full bg-transparent border-b border-white/20"
-            : "sticky top-0 bg-white border-b border-gray-200 shadow-sm"
+            : "sticky top-0 bg-white border-b border-gray-200 shadow-xs"
         }`}
       >
         <div className="flex items-center justify-between px-4 py-4 md:px-6">
@@ -91,7 +91,7 @@ export default function Header() {
                   isTransparent ? "text-white" : "text-black"
                 }`}
               >
-                Charmsvilla
+                Beyond
               </span>
               <span className="sr-only">Home</span>
             </Link>

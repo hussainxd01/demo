@@ -10,22 +10,22 @@ import Toast from "@/components/common/Toast";
 
 export const metadata = {
   title: {
-    default: "Charmsvilla | Luxury Beauty Store",
-    template: "%s | Charmsvilla",
+    default: "Beyond | Luxury Beauty Store",
+    template: "%s | Beyond",
   },
   description:
     "Premium curated beauty, skincare, and luxury cosmetic products.",
   openGraph: {
-    title: "Charmsvilla | Luxury Beauty Store",
+    title: "Beyond | Luxury Beauty Store",
     description:
       "Premium curated beauty, skincare, and luxury cosmetic products.",
-    siteName: "Charmsvilla",
+    siteName: "Beyond",
     images: [
       {
         url: "/main.jpg",
         width: 1200,
         height: 630,
-        alt: "Charmsvilla Product Showcase",
+        alt: "Beyond Product Showcase",
       },
     ],
     locale: "en_US",

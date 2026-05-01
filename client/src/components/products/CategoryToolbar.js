@@ -6,7 +6,6 @@ import SortDropdown from "./SortDropdown";
 export default function CategoryToolbar({
   itemCount,
   gridView,
-  onGridViewChange,
   sortValue,
   onSortChange,
   onFilterClick,
@@ -18,57 +17,6 @@ export default function CategoryToolbar({
       </div>
 
       <div className="toolbar-right">
-        {/* Grid View Toggle */}
-        <div className="view-toggle">
-          <button
-            className={`view-btn ${gridView === "large" ? "active" : ""}`}
-            onClick={() => onGridViewChange("large")}
-            aria-label="Large grid view"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="3" y="3" width="7" height="18" rx="1" />
-              <rect x="14" y="3" width="7" height="18" rx="1" />
-            </svg>
-          </button>
-          <button
-            className={`view-btn ${gridView === "small" ? "active" : ""}`}
-            onClick={() => onGridViewChange("small")}
-            aria-label="Small grid view"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="3" y="3" width="5" height="5" rx="1" />
-              <rect x="10" y="3" width="5" height="5" rx="1" />
-              <rect x="17" y="3" width="4" height="5" rx="1" />
-              <rect x="3" y="10" width="5" height="5" rx="1" />
-              <rect x="10" y="10" width="5" height="5" rx="1" />
-              <rect x="17" y="10" width="4" height="5" rx="1" />
-              <rect x="3" y="17" width="5" height="4" rx="1" />
-              <rect x="10" y="17" width="5" height="4" rx="1" />
-              <rect x="17" y="17" width="4" height="4" rx="1" />
-            </svg>
-          </button>
-        </div>
-
         {/* Filter Button */}
         <button className="filter-btn" onClick={onFilterClick}>
           <svg
