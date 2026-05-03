@@ -18,6 +18,7 @@ const reviewRoutes = require("./routes/review.routes");
 const uploadRoutes = require("./routes/upload.routes");
 const categoryRoutes = require("./routes/category.routes");
 const paymentRoutes = require("./routes/payment.routes");
+const pingRoutes = require("./routes/ping.route");
 
 // Import middleware
 const { errorHandler } = require("./middleware/errorHandler");
@@ -62,7 +63,13 @@ const authLimiter = rateLimit({
 // CORS configuration
 app.use(
   cors({
-    origin: [process.env.CLIENT_URL, "http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://localhost:5000"].filter(Boolean),
+    origin: [
+      process.env.CLIENT_URL,
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "http://127.0.0.1:3000",
+      "http://localhost:5000",
+    ].filter(Boolean),
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -116,6 +123,7 @@ app.use(`${apiPrefix}/orders`, orderRoutes);
 app.use(`${apiPrefix}/reviews`, reviewRoutes);
 app.use(`${apiPrefix}/upload`, uploadRoutes);
 app.use(`${apiPrefix}/payments`, paymentRoutes);
+app.use(`${apiPrefix}/ping`, pingRoutes);
 
 // Health check endpoint
 app.get("/health", (req, res) => {
