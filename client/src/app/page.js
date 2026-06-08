@@ -32,40 +32,65 @@ export default function Home() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative w-full h-dvh md:h-screen  overflow-hidden">
-        {/* Background Image */}
+      <section className="relative w-full h-dvh md:h-screen overflow-hidden">
+        {/* Background Images */}
         <div className="absolute inset-0">
+          {/* Mobile */}
           <Image
-            src="/hola.png"
-            alt="Beyond Horizon Showcase"
+            src="/hero-mobile.png"
+            alt="Charm Villa Jewellery"
             fill
-            sizes="100vw"
             priority
-            className="object-cover object-[center_top] md:object-[center_20%]"
+            sizes="100vw"
+            className="object-cover object-center md:hidden"
           />
+
+          {/* Desktop */}
+          <Image
+            src="/hero-desktop.png"
+            alt="Charm Villa Jewellery"
+            fill
+            priority
+            sizes="100vw"
+            className="hidden md:block object-cover object-center"
+          />
+
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-black/35" />
         </div>
 
         {/* Content */}
-        <div className="relative h-full flex flex-col items-center justify-center px-4 text-center">
-          <div className="max-w-2xl">
-            <p className="text-xs sm:text-sm md:text-base text-white uppercase tracking-widest mb-4">
-              UPNEXT 2026
+        <div className="relative h-full flex items-center md:items-center justify-center md:justify-start px-6 md:px-20 pt-16 md:pt-0">
+          <div className="max-w-2xl text-center md:text-left">
+            <p className="text-xs sm:text-sm md:text-base text-[#D6A37A] uppercase tracking-[0.3em] mb-4">
+              ANTI-TARNISH JEWELLERY
             </p>
-            <h1 className="text-2xl sm:text-3xl md:text-6xl lg:text-7xl font-semibold mb-6 leading-tight">
-              <span className="text-white">
-                On the{" "}
-                <span
-                  className={`${playfair.className} italic  tracking-tight inline-block font-extralight skew-x-[-6deg]`}
-                >
-                  Horizon
-                </span>
+
+            <h1 className="leading-tight mb-6">
+              <span className="block text-white text-4xl sm:text-5xl md:text-7xl font-medium">
+                Timeless Shine.
+              </span>
+
+              <span
+                className={`${playfair.className} italic font-light text-[#D6A37A] text-4xl sm:text-5xl md:text-7xl`}
+              >
+                Every Moment.
               </span>
             </h1>
+
+            <div className="flex flex-wrap justify-center md:justify-start gap-3 md:gap-5 mb-8 text-white/80 uppercase text-xs tracking-wider">
+              <span>Anti-Tarnish</span>
+              <span>|</span>
+              <span>Waterproof</span>
+              <span>|</span>
+              <span>Hypoallergenic</span>
+            </div>
+
             <Link
               href="/products"
-              className="inline-block px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 bg-transparent border-white border text-white font-semibold rounded-full hover:bg-gray-100 hover:text-gray-900 transition-colors text-xs sm:text-sm"
+              className="inline-flex items-center justify-center px-8 py-4 bg-[#D6A37A] text-black font-medium rounded-full hover:scale-105 transition-all duration-300"
             >
-              VIEW COLLECTION
+              SHOP THE COLLECTION
             </Link>
           </div>
         </div>

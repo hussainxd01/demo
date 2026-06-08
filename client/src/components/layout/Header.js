@@ -39,7 +39,7 @@ export default function Header() {
   return (
     <>
       <header
-        className={`z-40 transition-all duration-300 ${
+        className={`z-40 transition-all duration-300 px-10 ${
           isTransparent
             ? "absolute top-0 left-0 w-full bg-transparent border-b border-white/20"
             : "sticky top-0 bg-white border-b border-gray-200 shadow-xs"
@@ -91,7 +91,7 @@ export default function Header() {
                   isTransparent ? "text-white" : "text-black"
                 }`}
               >
-                Beyond
+                C H A R M S V I L L A
               </span>
               <span className="sr-only">Home</span>
             </Link>
