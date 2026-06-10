@@ -201,10 +201,6 @@ export default function ProductPage() {
                 alt={product.name}
                 className="w-full h-full object-cover"
               />
-
-              <button className="absolute bottom-4 right-4 bg-white rounded-full p-2 hover:bg-gray-100 transition-colors">
-                <Zap size={20} className="text-gray-600" />
-              </button>
             </div>
 
             <div className="flex gap-3 overflow-x-auto pb-2">
