@@ -37,7 +37,7 @@ export default function Home() {
         <div className="absolute inset-0">
           {/* Mobile */}
           <Image
-            src="/hero-mobile.png"
+            src="/hero-mobile-v2.png"
             alt="Charm Villa Jewellery"
             fill
             priority
@@ -47,7 +47,7 @@ export default function Home() {
 
           {/* Desktop */}
           <Image
-            src="/hero-desktop.png"
+            src="/hero-desktop-v2.png"
             alt="Charm Villa Jewellery"
             fill
             priority
@@ -56,41 +56,35 @@ export default function Home() {
           />
 
           {/* Overlay */}
-          <div className="absolute inset-0 bg-black/35" />
+          <div className="absolute inset-0 bg-black/10" />
         </div>
 
         {/* Content */}
-        <div className="relative h-full flex items-center md:items-center justify-center md:justify-start px-6 md:px-20 pt-16 md:pt-0">
-          <div className="max-w-2xl text-center md:text-left">
-            <p className="text-xs sm:text-sm md:text-base text-[#D6A37A] uppercase tracking-[0.3em] mb-4">
+        <div className="relative h-full flex items-center justify-center px-6">
+          <div className="max-w-3xl text-center">
+            <p className="text-white/70 text-xs uppercase tracking-[0.35em] mb-4">
               ANTI-TARNISH JEWELLERY
             </p>
 
-            <h1 className="leading-tight mb-6">
-              <span className="block text-white text-4xl sm:text-5xl md:text-7xl font-medium">
-                Timeless Shine.
-              </span>
-
-              <span
-                className={`${playfair.className} italic font-light text-[#D6A37A] text-4xl sm:text-5xl md:text-7xl`}
-              >
-                Every Moment.
-              </span>
+            <h1
+              className={`${playfair.className} text-white text-5xl sm:text-6xl md:text-8xl font-light leading-none mb-6`}
+            >
+              Find Your Forever Shine.
             </h1>
 
-            <div className="flex flex-wrap justify-center md:justify-start gap-3 md:gap-5 mb-8 text-white/80 uppercase text-xs tracking-wider">
-              <span>Anti-Tarnish</span>
-              <span>|</span>
+            <div className="flex flex-wrap justify-center gap-3 text-white/70 text-xs uppercase tracking-[0.2em] mb-8">
               <span>Waterproof</span>
-              <span>|</span>
+              <span>•</span>
               <span>Hypoallergenic</span>
+              <span>•</span>
+              <span>Anti-Tarnish</span>
             </div>
 
             <Link
               href="/products"
-              className="inline-flex items-center justify-center px-8 py-4 bg-[#D6A37A] text-black font-medium rounded-full hover:scale-105 transition-all duration-300"
+              className="inline-flex items-center border border-white/30 px-6 py-3 rounded-full text-white text-xs uppercase tracking-[0.2em] backdrop-blur-sm hover:bg-white hover:text-black transition-all"
             >
-              SHOP THE COLLECTION
+              Explore Collection
             </Link>
           </div>
         </div>
