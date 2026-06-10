@@ -32,7 +32,7 @@ export default function Home() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative w-full h-dvh md:h-screen overflow-hidden">
+      <section className="relative w-full h-[100svh] md:h-screen overflow-hidden">
         {/* Background Images */}
         <div className="absolute inset-0">
           {/* Mobile */}

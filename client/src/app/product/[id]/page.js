@@ -231,24 +231,24 @@ export default function ProductPage() {
           {/* Product Info */}
           <div className="space-y-6">
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              <p className="text-[11px] uppercase tracking-[0.3em] text-gray-500 mb-3">
                 {product.brand}
               </p>
 
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+              <h1 className="text-3xl md:text-[42px] font-light tracking-wide text-gray-900">
                 {product.name}
               </h1>
             </div>
 
-            {product.rating && (
+            {product.reviewCount > 0 && (
               <div className="flex items-center gap-3">
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
                     <span
                       key={i}
-                      className={`text-2xl ${
+                      className={`text-lg ${
                         i < Math.floor(product.rating)
-                          ? "text-yellow-400"
+                          ? "text-black"
                           : "text-gray-300"
                       }`}
                     >
@@ -257,43 +257,45 @@ export default function ProductPage() {
                   ))}
                 </div>
 
-                <span className="text-sm text-gray-600">
-                  (
-                  {product.reviewCount ||
-                    (Array.isArray(product.reviews)
-                      ? product.reviews.length
-                      : 0)}{" "}
-                  reviews)
+                <span className="text-xs uppercase tracking-wider text-gray-500">
+                  {product.reviewCount} Reviews
                 </span>
               </div>
             )}
 
             <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-bold text-gray-900">
+              <span className="text-2xl font-medium text-gray-900 tracking-wide">
                 Rs. {Number(product.price || 0).toLocaleString()}
               </span>
             </div>
 
-            <p className="text-gray-700 leading-relaxed italic">
-              {product.description}
-            </p>
+            <div className="space-y-3">
+              <p className="text-[11px] tracking-[0.25em] uppercase text-gray-500">
+                Description
+              </p>
 
-            <div className="p-4 bg-gray-50 rounded">
-              <p className="text-sm text-gray-600">
-                <strong>Size:</strong>{" "}
-                {product.specifications?.size ||
-                  product.specifications?.volume ||
-                  product.specifications?.weight ||
-                  "—"}
+              <p className="text-sm leading-7 text-gray-700">
+                {product.description}
+              </p>
+            </div>
+            <div className="border-t border-b border-gray-200 py-4">
+              <p className="text-sm text-gray-700 uppercase tracking-wide">
+                Size:{" "}
+                <span className="normal-case font-medium">
+                  {product.specifications?.size ||
+                    product.specifications?.volume ||
+                    product.specifications?.weight ||
+                    "—"}
+                </span>
               </p>
             </div>
 
             {/* Quantity + Buttons */}
             <div className="flex gap-4 pt-4">
-              <div className="flex items-center border border-gray-300 rounded">
+              <div className="flex items-center border border-gray-300 rounded-none">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-4 py-2 hover:bg-gray-100"
+                  className="px-5 py-3 hover:bg-gray-50"
                 >
                   −
                 </button>
@@ -302,7 +304,7 @@ export default function ProductPage() {
 
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="px-4 py-2 hover:bg-gray-100"
+                  className="px-5 py-3 hover:bg-gray-50"
                 >
                   +
                 </button>
@@ -310,7 +312,7 @@ export default function ProductPage() {
 
               <button
                 onClick={() => toggleFavorite(productId)}
-                className="flex-1 flex items-center justify-center gap-2 px-6 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                className="w-14 h-14 flex items-center justify-center border border-gray-300 rounded-none hover:bg-gray-50 transition-colors"
               >
                 <Heart
                   size={20}
@@ -320,33 +322,36 @@ export default function ProductPage() {
                 />
               </button>
 
-              <button className="flex-1 flex items-center justify-center gap-2 px-6 py-2 border border-gray-300 rounded hover:bg-gray-50">
+              <button className="w-14 h-14 flex items-center justify-center border border-gray-300 rounded-none hover:bg-gray-50 transition-colors">
                 <Share2 size={20} className="text-gray-600" />
               </button>
             </div>
 
             <button
               onClick={handleAddToCart}
-              className="w-full py-4 border-2 border-gray-800 text-gray-800 font-bold text-lg rounded hover:bg-gray-800 hover:text-white"
+              className="w-full py-4 bg-black text-white uppercase tracking-[0.2em] text-sm font-medium hover:opacity-90 transition-all"
             >
               ADD TO CART
             </button>
 
-            <button className="w-full py-4 bg-yellow-300 text-gray-900 font-bold text-lg rounded hover:bg-yellow-400">
+            <button className="w-full py-4 border border-black text-black uppercase tracking-[0.2em] text-sm font-medium hover:bg-black hover:text-white transition-all">
               BUY IT NOW
             </button>
 
-            <div className="p-4 bg-blue-50 rounded flex gap-3">
-              <Truck className="text-blue-600 flex-shrink-0" size={20} />
+            <div className="border-t border-b border-gray-200 py-5">
+              <div className="flex items-start gap-3">
+                <Truck size={18} className="text-gray-500 mt-0.5" />
 
-              <div className="text-sm text-gray-700">
-                <p className="font-semibold text-blue-900">
-                  Free shipping on orders over Rs. 5,000
-                </p>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    Complimentary Shipping
+                  </p>
 
-                <p className="text-xs text-gray-600 mt-1">
-                  Estimated delivery in 2-3 business days
-                </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Free shipping on orders over Rs. 5,000. Estimated delivery
+                    in 2–3 business days.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
